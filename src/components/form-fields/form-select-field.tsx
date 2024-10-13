@@ -17,6 +17,7 @@ interface FormSelectFieldProps<TFieldValues extends FieldValues> {
   error?: boolean;
   helperText?: string;
   selectProps?: Omit<SelectProps, 'name' | 'control' | 'label' | 'error'>;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export const FormSelectField = <TFieldValues extends FieldValues>({
@@ -31,17 +32,24 @@ export const FormSelectField = <TFieldValues extends FieldValues>({
   selectProps,
 }: FormSelectFieldProps<TFieldValues>) => {
   const [selectOptions, setSelectOptions] = React.useState<SelectOption[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
     const loadOptions = async () => {
-      if (typeof options === 'function') {
-        const fetchedOptions = await options();
-        setSelectOptions(fetchedOptions);
-      } else {
-        setSelectOptions(options);
+      setIsLoading(true);
+      try {
+        if (typeof options === 'function') {
+          const fetchedOptions = await options();
+          setSelectOptions(fetchedOptions);
+        } else {
+          setSelectOptions(options);
+        }
+      } catch (error) {
+        console.error('Error loading options:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
-
     loadOptions();
   }, [options]);
 
@@ -58,6 +66,8 @@ export const FormSelectField = <TFieldValues extends FieldValues>({
             {...field}
             {...selectProps}
             label={label}
+            disabled={isLoading}
+            value={isLoading ? '' : field.value}
           >
             {selectOptions.map((option) => (
               <MenuItem key={option.value} value={option.value}>

@@ -16,12 +16,16 @@ interface GenericTableRowProps<T> {
   row: T;
   columns: TableColumn<T>[];
   selected: boolean;
-  onSelectRow: (event: React.ChangeEvent<HTMLInputElement>, checked: boolean, id: string) => void;
+  onSelectRow?: (event: React.ChangeEvent<HTMLInputElement>, checked: boolean, id: string) => void;
   getRowId: (row: T) => string;
   actions?: {
+    add?: (row: T) => void;
     edit?: (row: T) => void;
     delete?: (row: T) => void;
   };
+  expandable?: boolean;
+  expanded?: boolean;
+  onExpandClick?: () => void;
 }
 
 export function GenericTableRow<T>({
@@ -30,7 +34,10 @@ export function GenericTableRow<T>({
   selected,
   onSelectRow,
   getRowId,
-  actions
+  actions,
+  expandable,
+  expanded,
+  onExpandClick,
 }: GenericTableRowProps<T>) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
 
@@ -45,13 +52,26 @@ export function GenericTableRow<T>({
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-        <TableCell padding="checkbox">
-          <Checkbox
-            disableRipple
-            checked={selected}
-            onChange={(event) => onSelectRow(event, !selected, getRowId(row))}
-          />
-        </TableCell>
+        {expandable && (
+          <TableCell>
+            <IconButton
+              aria-label="expand row"
+              size="small"
+              onClick={onExpandClick}
+            >
+              {expanded ? <Iconify icon="mingcute:up-fill" /> : <Iconify icon="mingcute:down-fill" />}
+            </IconButton>
+          </TableCell>
+        )}
+        {onSelectRow && ( // Only render the checkbox if onSelectRow is provided
+          <TableCell padding="checkbox">
+            <Checkbox
+              disableRipple
+              checked={selected}
+              onChange={(event) => onSelectRow(event, !selected, getRowId(row))}
+            />
+          </TableCell>
+        )}
         {columns.map((column) => (
           <TableCell key={column.id as string} align={column.align}>
             {column.render ? column.render(row) : (row[column.id as keyof T] as React.ReactNode)}
@@ -78,7 +98,8 @@ export function GenericTableRow<T>({
             sx={{
               p: 0.5,
               gap: 0.5,
-              width: 140,
+              minWidth: 140,
+              width: 'fit-content',
               display: 'flex',
               flexDirection: 'column',
               [`& .${menuItemClasses.root}`]: {
@@ -89,6 +110,12 @@ export function GenericTableRow<T>({
               },
             }}
           >
+            {actions.add && (
+              <MenuItem onClick={() => { actions.add?.(row); handleClosePopover(); }}>
+                <Iconify icon="mingcute:add-fill" />
+                Add Instance
+              </MenuItem>
+            )}
             {actions.edit && (
               <MenuItem onClick={() => { actions.edit?.(row); handleClosePopover(); }}>
                 <Iconify icon="solar:pen-bold" />

@@ -1,144 +1,318 @@
-import { useState, useCallback } from 'react';
+import { Box, Typography, Button, Card, TableContainer, CircularProgress, TableRow, TableCell, Table, TableBody, TableHead } from "@mui/material";
+import { useState, useCallback } from "react";
+import { Iconify } from "src/components/iconify";
+import { Label } from "src/components/label";
+import { Scrollbar } from "src/components/scrollbar";
+import { useEntities } from "src/hooks/use-entities";
+import { useTable } from "src/hooks/use-table";
+import { CustomDialog } from "src/layouts/components/custom-dialog";
+import { GenericTable } from "src/layouts/components/table/generic-table";
+import { DashboardContent } from "src/layouts/dashboard";
+import { AttributeForm } from "src/sections/attribute/attribute-form";
+import { TableColumn } from "src/services/types";
+import { ProductForm } from "../product-form";
+import { GenericTableRow } from "src/layouts/components/table/generic-table-row";
+import { ProductInstanceForm } from "../product-instance-form";
 
-import Box from '@mui/material/Box';
-import Grid from '@mui/material/Unstable_Grid2';
-import Pagination from '@mui/material/Pagination';
-import Typography from '@mui/material/Typography';
+type ProductProps = {
+  id: string,
+  name: string,
+  modelNumber: string,
+  isTracked: string,
+  shelfLifeInDays?: string,
+  warrantyInDays?: string,
+  brand: string,
+  category: string
+  instances?: ProductInstanceProps[]
+}
 
-import { _products } from 'src/_mock';
-import { DashboardContent } from 'src/layouts/dashboard';
+type ProductInstanceProps = {
+  id: string,
+  sku: string,
+  qty: number,
+  buyPrice: number,
+  sellPrice: number,
+  image?: string
+}
 
-import { ProductItem } from '../product-item';
-import { ProductSort } from '../product-sort';
-import { CartIcon } from '../product-cart-widget';
-import { ProductFilters } from '../product-filters';
-
-import type { FiltersProps } from '../product-filters';
-
-// ----------------------------------------------------------------------
-
-const GENDER_OPTIONS = [
-  { value: 'men', label: 'Men' },
-  { value: 'women', label: 'Women' },
-  { value: 'kids', label: 'Kids' },
-];
-
-const CATEGORY_OPTIONS = [
-  { value: 'all', label: 'All' },
-  { value: 'shose', label: 'Shose' },
-  { value: 'apparel', label: 'Apparel' },
-  { value: 'accessories', label: 'Accessories' },
-];
-
-const RATING_OPTIONS = ['up4Star', 'up3Star', 'up2Star', 'up1Star'];
-
-const PRICE_OPTIONS = [
-  { value: 'below', label: 'Below $25' },
-  { value: 'between', label: 'Between $25 - $75' },
-  { value: 'above', label: 'Above $75' },
-];
-
-const COLOR_OPTIONS = [
-  '#00AB55',
-  '#000000',
-  '#FFFFFF',
-  '#FFC0CB',
-  '#FF4842',
-  '#1890FF',
-  '#94D82D',
-  '#FFC107',
-];
-
-const defaultFilters = {
-  price: '',
-  gender: [GENDER_OPTIONS[0].value],
-  colors: [COLOR_OPTIONS[4]],
-  rating: RATING_OPTIONS[0],
-  category: CATEGORY_OPTIONS[0].value,
+const transformProduct = (apiProduct: any): ProductProps => {
+  return {
+    id: apiProduct.productId,
+    name: apiProduct.name,
+    modelNumber: apiProduct.modelNumber,
+    isTracked: apiProduct.isTracked ? 'Yes' : 'No',
+    shelfLifeInDays: apiProduct.shelfLifeInDays ? apiProduct.shelfLifeInDays + ' Days' : 'Does not have shelf life',
+    warrantyInDays: apiProduct.warrantyInDays ? apiProduct.warrantyInDays + ' Days' : 'Does not have warranty',
+    brand: apiProduct.brand,
+    category: apiProduct.category,
+    instances: apiProduct.instances?.map((instance: any) => ({
+      id: instance.productInstanceId,
+      sku: instance.sku,
+      qty: instance.quantityInStock,
+      buyPrice: instance.buyingPrice,
+      sellPrice: instance.sellingPrice,
+      image: instance.image ?? "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRGh5WFH8TOIfRKxUrIgJZoDCs1yvQ4hIcppw&s"
+    }))
+  };
 };
 
+const PRODUCT_TABLE_COLUMNS: TableColumn<ProductProps>[] = [
+  { id: 'name', label: 'Name' },
+  { id: 'modelNumber', label: 'Model Number' },
+  { id: 'brand', label: 'Brand' },
+  { id: 'category', label: 'Category' },
+  { id: 'shelfLifeInDays', label: 'Shelf Life' },
+  { id: 'warrantyInDays', label: 'Warranty' },
+  {
+    id: 'isTracked',
+    label: 'Tracked',
+    align: 'center',
+    render: (product) => (
+      <Label color={(product.isTracked === 'No' && 'error') || 'success'}>{product.isTracked}</Label>
+    ),
+  },
+];
+
 export function ProductsView() {
-  const [sortBy, setSortBy] = useState('featured');
+  const [filterName, setFilterName] = useState('');
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [showProductInstanceForm, setShowProductInstanceForm] = useState(false);
+  const [showAttributeForm, setShowAttributeForm] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<ProductProps | null>(null);
+  const [selectedProductInstance, setSelectedProductInstance] = useState<ProductInstanceProps | null>(null);
 
-  const [openFilter, setOpenFilter] = useState(false);
+  const table = useTable();
 
-  const [filters, setFilters] = useState<FiltersProps>(defaultFilters);
-
-  const handleOpenFilter = useCallback(() => {
-    setOpenFilter(true);
-  }, []);
-
-  const handleCloseFilter = useCallback(() => {
-    setOpenFilter(false);
-  }, []);
-
-  const handleSort = useCallback((newSort: string) => {
-    setSortBy(newSort);
-  }, []);
-
-  const handleSetFilters = useCallback((updateState: Partial<FiltersProps>) => {
-    setFilters((prevValue) => ({ ...prevValue, ...updateState }));
-  }, []);
-
-  const canReset = Object.keys(filters).some(
-    (key) => filters[key as keyof FiltersProps] !== defaultFilters[key as keyof FiltersProps]
+  const { entities: products, loading, error, totalCount, updateParams, refetch } = useEntities<ProductProps>(
+    'products',
+    {
+      PageNumber: table.page + 1,
+      PageSize: table.rowsPerPage,
+      SortBy: table.orderBy,
+      SortDescending: table.order === 'desc',
+      SearchTerm: filterName,
+    },
+    transformProduct
   );
+
+  const handleFilterName = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newFilterName = event.target.value;
+    setFilterName(newFilterName);
+    updateParams({ SearchTerm: newFilterName, PageNumber: 1 });
+    table.onChangePage(null, 0);
+  };
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    updateParams({ PageNumber: newPage + 1 });
+    table.onChangePage(event, newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    updateParams({ PageSize: newRowsPerPage, PageNumber: 1 });
+    table.onChangeRowsPerPage(event);
+  };
+
+  const handleSort = (property: keyof ProductProps) => {
+    const isAsc = table.orderBy === property && table.order === 'asc';
+    updateParams({
+      SortBy: property,
+      SortDescending: !isAsc,
+    });
+    table.onSort(property);
+  };
+
+  const handleSelectRow = (event: React.ChangeEvent<HTMLInputElement>, checked: boolean, id: string) => {
+    table.onSelectRow(event, checked, id);
+  };
+
+  const handleAddAttribute = () => {
+    //setSelectedProduct(null);
+    setShowAttributeForm(true);
+  };
+
+  // const handleEditAttribute = (product: ProductProps) => {
+  //   setSelectedProduct(product);
+  //   setShowProductForm(true);
+  // };
+
+  const handleAddProduct = () => {
+    setSelectedProduct(null);
+    setShowProductForm(true);
+  };
+
+  const handleEditProduct = (product: ProductProps) => {
+    setSelectedProduct(product);
+    setShowProductForm(true);
+  };
+
+  const handleProductFormClose = useCallback(() => {
+    setShowProductForm(false);
+    refetch();
+  }, [refetch]);
+
+  const handleProductFormCancel = () => {
+    setShowProductForm(false);
+  }
+
+  const handleAttributeFormClose = () => {
+    setShowAttributeForm(false);
+  }
+
+  const handleAttributeFormCancel = () => {
+    setShowAttributeForm(false);
+  }
+
+  const handleAddInstance = (product: ProductProps) => {
+    setSelectedProduct(product);
+    setSelectedProductInstance(null)
+    setShowProductInstanceForm(true);
+  }
+
+  const handleEditInstance = (product: ProductProps, instance: ProductInstanceProps) => {
+    setSelectedProduct(product);
+    setSelectedProductInstance(instance)
+    setShowProductInstanceForm(true);
+  }
+
+  const handleProductInstanceFormClose = useCallback(() => {
+    setShowProductInstanceForm(false);
+    refetch();
+  }, [refetch]);
+
+  const handleProductInstanceFormCancel = () => {
+    setShowProductInstanceForm(false);
+  }
 
   return (
     <DashboardContent>
-      <Typography variant="h4" sx={{ mb: 5 }}>
-        Products
-      </Typography>
-
-      <CartIcon totalItems={8} />
-
-      <Box
-        display="flex"
-        alignItems="center"
-        flexWrap="wrap-reverse"
-        justifyContent="flex-end"
-        sx={{ mb: 5 }}
-      >
-        <Box gap={1} display="flex" flexShrink={0} sx={{ my: 1 }}>
-          <ProductFilters
-            canReset={canReset}
-            filters={filters}
-            onSetFilters={handleSetFilters}
-            openFilter={openFilter}
-            onOpenFilter={handleOpenFilter}
-            onCloseFilter={handleCloseFilter}
-            onResetFilter={() => setFilters(defaultFilters)}
-            options={{
-              genders: GENDER_OPTIONS,
-              categories: CATEGORY_OPTIONS,
-              ratings: RATING_OPTIONS,
-              price: PRICE_OPTIONS,
-              colors: COLOR_OPTIONS,
-            }}
-          />
-
-          <ProductSort
-            sortBy={sortBy}
-            onSort={handleSort}
-            options={[
-              { value: 'featured', label: 'Featured' },
-              { value: 'newest', label: 'Newest' },
-              { value: 'priceDesc', label: 'Price: High-Low' },
-              { value: 'priceAsc', label: 'Price: Low-High' },
-            ]}
-          />
-        </Box>
+      <Box display="flex" alignItems="center" mb={5} flexDirection={{ xs: 'column', sm: 'row' }} gap={1}>
+        <Typography variant="h4" flexGrow={1}>
+          Products
+        </Typography>
+        {/* <Button variant="contained" color="inherit" onClick={handleAddProduct} startIcon={<Iconify icon="mingcute:add-line" />}>
+          New brand
+        </Button>
+        <Button variant="contained" color="inherit" onClick={handleAddProduct} startIcon={<Iconify icon="mingcute:add-line" />}>
+          New category
+        </Button> */}
+        <Button variant="contained" color="inherit" onClick={handleAddAttribute} startIcon={<Iconify icon="mingcute:add-line" />}>
+          New attribute
+        </Button>
+        <Button variant="contained" color="inherit" onClick={handleAddProduct} startIcon={<Iconify icon="mingcute:add-line" />}>
+          New product
+        </Button>
       </Box>
 
-      <Grid container spacing={3}>
-        {_products.map((product) => (
-          <Grid key={product.id} xs={12} sm={6} md={3}>
-            <ProductItem product={product} />
-          </Grid>
-        ))}
-      </Grid>
+      <Card>
+        <Scrollbar>
+          <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
+            <GenericTable
+              data={products}
+              columns={PRODUCT_TABLE_COLUMNS}
+              totalCount={totalCount}
+              page={table.page}
+              rowsPerPage={table.rowsPerPage}
+              orderBy={table.orderBy}
+              order={table.order}
+              selected={table.selected}
+              filterName={filterName}
+              onFilterName={handleFilterName}
+              onChangePage={handleChangePage}
+              onChangeRowsPerPage={handleChangeRowsPerPage}
+              onSort={handleSort}
+              onSelectAllRows={(checked) => table.onSelectAllRows(checked, products.map(product => product.id))}
+              onSelectRow={handleSelectRow}
+              getRowId={(row: ProductProps) => row.id}
+              actions={{
+                add: handleAddInstance,
+                edit: handleEditProduct,
+              }}
+              expandableContent={(product: ProductProps) => (
+                <>
+                  <Typography variant="h6" gutterBottom component="div">
+                    Instances
+                  </Typography>
+                  <Table size="small" aria-label="instances">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>SKU</TableCell>
+                        <TableCell>Quantity</TableCell>
+                        <TableCell>Buy Price</TableCell>
+                        <TableCell>Sell Price</TableCell>
+                        <TableCell align="center">Image</TableCell>
+                        <TableCell/>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                    {product.instances?.map((instance) => (
+                      <GenericTableRow
+                        key={instance.id}
+                        row={instance}
+                        columns={[
+                          { id: 'sku', label:'SKU', align: 'left' },
+                          { id: 'qty', label:'SKU', align: 'left' },
+                          { id: 'buyPrice', label:'SKU', align: 'left' },
+                          { id: 'sellPrice', label:'SKU', align: 'left' },
+                          { id: 'image', label:'SKU', align: 'center', render: () => (
+                            <img src={instance.image} alt={instance.sku} width="100" />
+                          ) },
+                        ]}
+                        selected={false} 
+                        getRowId={(row) => row.id}
+                        actions={{
+                          edit: (instance) => handleEditInstance(product, instance),
+                        }}
+                        expandable={false}
+                      />
+                    ))}
+                    </TableBody>
+                  </Table>
+                </>
+              )} />
+            {loading && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  bgcolor: 'rgba(255, 255, 255, 0.8)',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  zIndex: 10,
+                }}
+              >
+                <CircularProgress />
+              </Box>
+            )}
 
-      <Pagination count={10} color="primary" sx={{ mt: 8, mx: 'auto' }} />
+            {error && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  bgcolor: 'rgba(255, 255, 255, 0.8)',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  zIndex: 10,
+                }}
+              >
+                {error}
+              </Box>
+            )}
+          </TableContainer>
+        </Scrollbar>
+      </Card>
+      <CustomDialog open={showProductForm} handleCancel={handleProductFormCancel} title={selectedProduct?.id ? 'Edit product' : 'Add new product'} content={<ProductForm productId={selectedProduct?.id} onSubmitSuccess={handleProductFormClose} />} />
+      <CustomDialog open={showProductInstanceForm} handleCancel={handleProductInstanceFormCancel} title={selectedProductInstance?.id ? 'Edit product instance' : 'Add new product instance'} content={<ProductInstanceForm productId={selectedProduct?.id ?? 'g'} productInstanceId={selectedProductInstance?.id} onSubmitSuccess={handleProductInstanceFormClose} />} />
+      <CustomDialog open={showAttributeForm} handleCancel={handleAttributeFormCancel} title={'Add new attribute'} content={<AttributeForm onSubmitSuccess={handleAttributeFormClose} />} />
     </DashboardContent>
-  );
+  )
 }

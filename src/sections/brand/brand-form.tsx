@@ -22,7 +22,6 @@ export function BrandForm({ brandId, onSubmitSuccess }: BrandFormProps) {
     const [fetchingBrand, setFetchingBrand] = useState(false);
     const isEditMode = !!brandId;
 
-
     const { control, handleSubmit, reset, formState: { errors, dirtyFields } } = useForm<BrandFormData>({
         defaultValues: {
             brandId: '',
@@ -81,52 +80,6 @@ export function BrandForm({ brandId, onSubmitSuccess }: BrandFormProps) {
             setLoading(false);
         }
     };
-
-    // const onSubmit: SubmitHandler<BrandFormData> = async (data) => {
-    //     setLoading(true);
-    //     setSubmissionError(null);
-
-    //     try {
-    //         let response;
-    //         if (isEditMode) {
-    //             const changedData = Object.keys(dirtyFields).reduce((acc: Partial<BrandFormData>, key) => {
-    //                 acc[key as keyof BrandFormData] = data[key as keyof BrandFormData];
-    //                 return acc;
-    //             }, {});
-
-    //             const requestBody = {
-    //                 ...changedData,
-    //                 brandId: brandId
-    //             };
-
-    //             response = await fetch(`http://localhost:5184/brands`, {
-    //                 method: 'PUT',
-    //                 headers: { 'Content-Type': 'application/json' },
-    //                 body: JSON.stringify(requestBody),
-    //             });
-    //         } else {
-    //             response = await fetch('http://localhost:5184/brands', {
-    //                 method: 'POST',
-    //                 headers: { 'Content-Type': 'application/json' },
-    //                 body: JSON.stringify(data),
-    //             });
-    //         }
-
-    //         if (!response.ok) {
-    //             const errorResponse = await response.json();
-    //             const errorMessages = errorResponse.errorMessages || ["An unknown error occurred."];
-    //             throw new Error(errorMessages.join(', '));
-    //         }
-
-    //         console.log(isEditMode ? 'Brand updated successfully' : 'Brand added successfully');
-    //         onSubmitSuccess();
-    //     } catch (error: any) {
-    //         console.error(error);
-    //         setSubmissionError(error.message || "An unexpected error occurred. Please try again.");
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
 
     return (
         <Box component="form" autoComplete="on" onSubmit={handleSubmit(onSubmit)}>

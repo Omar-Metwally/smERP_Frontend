@@ -1,10 +1,14 @@
 import { useMutation, useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { jwtDecode } from 'jwt-decode';
-import { ApiPaginatedResponse, ApiResponse, PaginationParameters, SelectOption } from './types';
+import { ApiPaginatedResponse, ApiResponse, AttributeSelectOption, PaginationParameters, SelectOption } from './types';
 import { BranchFormData } from 'src/sections/branch/branch-form';
 import { BrandFormData } from 'src/sections/brand/brand-form';
 import { CategoryFormData } from 'src/sections/category/category-form';
 import { UserFormData } from 'src/sections/user/add-new-user';
+import { AttributeFormData } from 'src/sections/attribute/attribute-form';
+import { ProductFormData } from 'src/sections/product/product-form';
+import { ProductInstanceFormData } from 'src/sections/product/product-instance-form';
+import { Attribute } from 'src/sections/product/test';
 
 // Define the base URL for your API
 const API_BASE_URL = 'https://taambeit.runasp.net';
@@ -102,13 +106,13 @@ export const useLogin = () => {
   };
 };
 
-export const useLogout = () => 
-  useMutation({mutationFn: logoutUser});
+export const useLogout = () =>
+  useMutation({ mutationFn: logoutUser });
 
 
 // Custom hook for token refresh mutation
-export const useRefreshToken = () => 
-   useMutation({mutationFn: refreshAccessToken});
+export const useRefreshToken = () =>
+  useMutation({ mutationFn: refreshAccessToken });
 
 
 export const isTokenExpired = (token?: string): boolean => {
@@ -277,6 +281,61 @@ export const apiService = {
       return handleResponse(response);
     },
   },
+  attributes: {
+    create: async (data: AttributeFormData) => {
+      const response = await fetch(`${API_BASE_URL1}attributes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return handleResponse(response);
+    },
+    update: async (attributeId: string, data: any) => {
+      const response = await fetch(`${API_BASE_URL1}attributes`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, attributeId }),
+      });
+      return handleResponse(response);
+    },
+  },
+  products: {
+    create: async (data: ProductFormData) => {
+      const response = await fetch(`${API_BASE_URL1}products`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return handleResponse(response);
+    },
+    update: async (productId: string, data: Partial<ProductFormData>) => {
+      const response = await fetch(`${API_BASE_URL1}products`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, productId }),
+      });
+      return handleResponse(response);
+    },
+  },
+  productInstances: {
+    create: async (productId: string ,data: ProductInstanceFormData) => {
+      console.log(productId)
+      const response = await fetch(`${API_BASE_URL1}products/${productId}/instances`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, productId }),
+      });
+      return handleResponse(response);
+    },
+    update: async (productId: string, productInstanceId: string, data: Partial<ProductInstanceFormData>) => {
+      const response = await fetch(`${API_BASE_URL1}products/${productId}/instances/${productInstanceId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return handleResponse(response);
+    },
+  },
 };
 
 export const fetchEntities = async <T>(
@@ -293,11 +352,11 @@ export const fetchEntities = async <T>(
   ).toString();
 
   const response = await fetch(`${API_BASE_URL1}${endpoint}${queryString ? `?${queryString}` : ''}`);
-  
+
   if (!response.ok) {
     throw new Error(`Failed to fetch ${endpoint}`);
   }
-  
+
   return response.json();
 };
 
@@ -309,7 +368,29 @@ export const fetchBranches = async (): Promise<ApiResponse<SelectOption[]>> => {
   }
 
   const result: ApiResponse<SelectOption[]> = await response.json();
-  return result; 
+  return result;
+};
+
+export const fetchAttributes = async (): Promise<ApiResponse<Attribute[]>> => {
+  const response = await fetch(`${API_BASE_URL1}attributes/list`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch attributes');
+  }
+
+  const result: ApiResponse<Attribute[]> = await response.json();
+  return result;
+};
+
+export const fetchBrands = async (): Promise<ApiResponse<SelectOption[]>> => {
+  const response = await fetch(`${API_BASE_URL1}brands/list`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch brands');
+  }
+
+  const result: ApiResponse<SelectOption[]> = await response.json();
+  return result;
 };
 
 export const fetchRoles = async (): Promise<ApiResponse<string[]>> => {
@@ -320,7 +401,7 @@ export const fetchRoles = async (): Promise<ApiResponse<string[]>> => {
   }
 
   const result: ApiResponse<string[]> = await response.json();
-  return result; 
+  return result;
 };
 
 export const fetchParentCategories = async (): Promise<ApiResponse<SelectOption[]>> => {
@@ -331,7 +412,7 @@ export const fetchParentCategories = async (): Promise<ApiResponse<SelectOption[
   }
 
   const result: ApiResponse<SelectOption[]> = await response.json();
-  return result; 
+  return result;
 };
 
 export const fetchProductCategories = async (): Promise<ApiResponse<SelectOption[]>> => {
@@ -342,7 +423,7 @@ export const fetchProductCategories = async (): Promise<ApiResponse<SelectOption
   }
 
   const result: ApiResponse<SelectOption[]> = await response.json();
-  return result; 
+  return result;
 };
 
 export { apiCall };

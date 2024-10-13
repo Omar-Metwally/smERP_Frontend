@@ -2,6 +2,7 @@ import React from 'react';
 import { TextField, InputAdornment, IconButton, TextFieldProps } from '@mui/material';
 import { Controller, Control, FieldValues, Path, RegisterOptions, FieldPath } from 'react-hook-form';
 import { Iconify } from 'src/components/iconify';
+import { isReadable } from 'stream';
 
 interface FormFieldProps<TFieldValues extends FieldValues> {
   name: Path<TFieldValues>;
@@ -13,7 +14,9 @@ interface FormFieldProps<TFieldValues extends FieldValues> {
   error?: boolean;
   helperText?: string;
   textFieldProps?: Omit<TextFieldProps, 'name' | 'control' | 'label' | 'type' | 'error' | 'helperText'>;
-  render?: (field: any) => React.ReactNode; // New prop for custom rendering
+  render?: (field: any) => React.ReactNode;
+  isNumber?: boolean;
+  isReadOnly?: boolean;
 }
 
 export const FormField = <TFieldValues extends FieldValues>({
@@ -27,8 +30,16 @@ export const FormField = <TFieldValues extends FieldValues>({
   helperText,
   textFieldProps,
   render,
+  isNumber = false,
+  isReadOnly = false
 }: FormFieldProps<TFieldValues>) => {
   const [showPassword, setShowPassword] = React.useState(false);
+
+  const handleNumericInput = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const numericValue = event.target.value.replace(/^0+|[^0-9]/g, '');
+    event.target.value = numericValue;
+    return event;
+  };
 
   return (
     <Controller<TFieldValues>
@@ -38,9 +49,10 @@ export const FormField = <TFieldValues extends FieldValues>({
       render={({ field }) => (
         <>
           {render ? (
-            render(field) // Render custom component if provided
+            render(field)
           ) : (
             <TextField
+              disabled={isReadOnly}
               fullWidth
               margin="normal"
               label={label}
@@ -66,6 +78,7 @@ export const FormField = <TFieldValues extends FieldValues>({
                       ),
                     }
                   : {}),
+                  onChange: isNumber ? (event) => field.onChange(handleNumericInput(event)) : field.onChange,
                 ...(textFieldProps?.InputProps || {}),
               }}
             />

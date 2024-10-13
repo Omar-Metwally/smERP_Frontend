@@ -9,6 +9,7 @@ import {
   styled,
 } from '@mui/material';
 import { Iconify } from 'src/components/iconify';
+import { Scrollbar } from 'src/components/scrollbar';
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialogContent-root': {
@@ -57,11 +58,12 @@ export function CustomDialog({
         }}
       >
         <Iconify
-          icon={'solar:close-circle-line-duotone'}
-          width={30}
+          icon={'mingcute:close-line'}
         />
       </IconButton>
-      <DialogContent>{content}</DialogContent>
+      <Scrollbar>
+        <DialogContent>{content}</DialogContent>
+      </Scrollbar>
 
       {actionText && (
         <DialogActions>

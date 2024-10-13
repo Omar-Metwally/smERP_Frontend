@@ -53,3 +53,12 @@ export interface PaginationParameters {
     label: string;
   }
   
+  export interface AttributeSelectOption extends SelectOption{
+    values: SelectOption[]
+  }
+
+  export interface AttributeValue {
+    attributeId: string;
+    attributeValueId: string;
+  }
+  

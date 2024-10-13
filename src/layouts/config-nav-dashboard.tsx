@@ -19,14 +19,14 @@ export const navData = [
     icon: icon('ic-user'),
   },
   {
-    title: 'Brand',
-    path: '/brand',
-    icon: icon('ic-brand'),
-  },
-  {
     title: 'Branch',
     path: '/branch',
     icon: icon('ic-branch'),
+  },
+  {
+    title: 'Brand',
+    path: '/brand',
+    icon: icon('ic-brand'),
   },
   {
     title: 'Category',
@@ -34,14 +34,19 @@ export const navData = [
     icon: icon('ic-category'),
   },
   {
+    title: 'Attribute',
+    path: '/attribute',
+    icon: icon('ic-attribute'),
+  },
+  {
     title: 'Product',
     path: '/products',
     icon: icon('ic-cart'),
-    info: (
-      <Label color="error" variant="inverted">
-        +3
-      </Label>
-    ),
+    // info: (
+    //   <Label color="error" variant="inverted">
+    //     +3
+    //   </Label>
+    // ),
   },
   {
     title: 'Blog',
