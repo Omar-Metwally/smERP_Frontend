@@ -196,4 +196,4 @@ export const ImageUploadField = <TFieldValues extends FieldValues>({
   );
 };
 
-export default ImageUploadField;
+export default ImageUploadField

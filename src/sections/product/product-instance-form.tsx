@@ -102,6 +102,10 @@ export function ProductInstanceForm({ productId, productInstanceId, onSubmitSucc
         }
     };
 
+    function hello(fhg: any){
+        console.log(fhg)
+    }
+
     const handleAttributesChange = (newAttributes: AttributeValue[]) => {
         const selectedAttributeIds = newAttributes.map(attr => attr.attributeId);
         const uniqueIds = new Set(selectedAttributeIds);
