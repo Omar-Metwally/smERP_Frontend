@@ -62,3 +62,8 @@ export interface PaginationParameters {
     attributeValueId: string;
   }
   
+  interface File {
+    isNew: boolean;
+    base64String?: string;
+    Url?: string;
+  }
