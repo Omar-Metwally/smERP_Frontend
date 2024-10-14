@@ -95,10 +95,11 @@ export function AddEditUserForm({ userId, onSubmitSuccess }: AddEditUserFormProp
     setSubmissionError(null);
     try {
       if (isEditMode) {
-        const changedData = Object.keys(dirtyFields).reduce((acc: Partial<UserFormData>, key) => {
-          acc[key as keyof UserFormData] = data[key as keyof UserFormData];
-          return acc;
-        }, {});
+        const changedData = Object.fromEntries(
+          Object.entries(dirtyFields)
+            .filter(([_, isDirty]) => isDirty)
+            .map(([key]) => [key, data[key as keyof UserFormData]])
+        ) as Partial<UserFormData>;
         await apiService.users.update(userId, changedData);
       } else {
         await apiService.users.create(data);

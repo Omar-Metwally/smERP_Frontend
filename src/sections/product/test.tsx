@@ -15,9 +15,11 @@ interface AttributeSelectorProps {
   attributes: Attribute[];
   initialValues?: AttributeValue[];
   onAttributesChange: (selectedAttributes: AttributeValue[]) => void;
+  setAttributesError: React.Dispatch<React.SetStateAction<string | null>>
+  attributesError: string | null
 }
 
-export const AttributeSelector: React.FC<AttributeSelectorProps> = ({ attributes, initialValues = [], onAttributesChange }) => {
+export const AttributeSelector: React.FC<AttributeSelectorProps> = ({ attributes, initialValues = [], onAttributesChange, setAttributesError, attributesError }) => {
   const { control, watch, setError, clearErrors, handleSubmit } = useForm({
     defaultValues: {
       attributes: initialValues.length ? initialValues : [{ attributeId: '', attributeValueId: '' }],
@@ -29,13 +31,14 @@ export const AttributeSelector: React.FC<AttributeSelectorProps> = ({ attributes
   const [error, setErrorState] = useState<string | null>(null);
 
   const updateSelectedAttributes = useCallback(() => {
-    const selectedAttributeIds = watchFieldArray?.map((field: AttributeValue) => field?.attributeId) || [];
+    console.log(watchFieldArray)
+    const selectedAttributeIds = watchFieldArray?.map((field: AttributeValue) => field?.attributeId.toString()) || [];
 
     const uniqueIds = new Set(selectedAttributeIds);
     if (uniqueIds.size !== selectedAttributeIds.length) {
-      setErrorState('Attributes must be unique. You have selected one or more duplicate attributes.');
+      setAttributesError('Attributes must be unique. You have selected one or more duplicate attributes.');
     } else {
-      setErrorState(null);
+      setAttributesError(null);
     }
     const selectedAttributes = watchFieldArray
       ?.filter((field: any) => field?.attributeId && field?.attributeValueId)
@@ -91,13 +94,13 @@ export const AttributeSelector: React.FC<AttributeSelectorProps> = ({ attributes
         <Button
           onClick={handleAddAttribute}
           variant="contained"
-          sx={{ mt: 2 }}
+          disabled={!!attributesError}
         >
           Add Attribute
         </Button>
-        {error && (
+        {attributesError && (
           <Typography color="error" sx={{ mt: 2 }}>
-            {error}
+            {attributesError}
           </Typography>
         )}
       </Box>

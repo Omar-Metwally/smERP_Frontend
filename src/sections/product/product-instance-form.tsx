@@ -1,6 +1,6 @@
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { useState, useEffect } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import { FormField } from "src/components/form-fields/form-field";
 import ImageUploadField from "src/components/form-fields/image-field";
 import { useAttributes } from "src/hooks/use-attributes";
@@ -29,9 +29,10 @@ export function ProductInstanceForm({ productId, productInstanceId, onSubmitSucc
     const [loading, setLoading] = useState(false);
     const [submissionError, setSubmissionError] = useState<string | null>(null);
     const [fetchingInstanceProduct, setFetchingInstanceProduct] = useState(false);
+    const [attributesError, setAttributesError] = useState<string | null>(null);
     const [selectedAttributes, setSelectedAttributes] = useState<any>(null);
     const [existingProductInstanceImages, setExistingProductInstanceImages] = useState<string[] | null>(null);
-    const [imagesPathToRemove, setImagesPathToRemove] = useState<string[]>([]);
+    const [imagesUrlToRemove, setImagesUrlToRemove] = useState<string[] | null>(null);
     const isEditMode = !!productInstanceId;
 
     const { control, handleSubmit, reset, formState: { errors, dirtyFields } } = useForm<ProductInstanceFormData>({
@@ -45,6 +46,8 @@ export function ProductInstanceForm({ productId, productInstanceId, onSubmitSucc
         },
     });
 
+    const { fields, append, remove } = useFieldArray({ control, name: 'attributes' });
+    
     useEffect(() => {
         const fetchProductInstanceData = async () => {
             if (productInstanceId) {
@@ -56,7 +59,6 @@ export function ProductInstanceForm({ productId, productInstanceId, onSubmitSucc
                     }
                     const responseBody = await response.json();
                     const productData: ProductInstanceFormData = responseBody.value;
-                    console.log(responseBody, responseBody.image)
                     setExistingProductInstanceImages([responseBody.value.image])
                     setSelectedAttributes(productData.attributes);
                     reset(productData);
@@ -73,15 +75,19 @@ export function ProductInstanceForm({ productId, productInstanceId, onSubmitSucc
     }, [productInstanceId, reset]);
 
     const onSubmit: SubmitHandler<ProductInstanceFormData> = async (data) => {
+        if (attributesError) return;
         setLoading(true);
         setSubmissionError(null);
-        data.attributes = selectedAttributes;
         try {
             if (isEditMode) {
-                const changedData = Object.keys(dirtyFields).reduce((acc: Partial<ProductInstanceFormData>, key) => {
-                    acc[key as keyof ProductInstanceFormData] = data[key as keyof ProductInstanceFormData];
-                    return acc;
-                }, {});
+                const changedData = Object.fromEntries(
+                    Object.entries(dirtyFields)
+                      .filter(([_, isDirty]) => isDirty)
+                      .map(([key]) => [key, data[key as keyof ProductInstanceFormData]])
+                  ) as Partial<ProductInstanceFormData>;
+
+                changedData.imagesPathToRemove = imagesUrlToRemove ?? undefined;
+                changedData.attributes = selectedAttributes
                 await apiService.productInstances.update(productId, productInstanceId, changedData);
             } else {
                 await apiService.productInstances.create(productId, data);
@@ -96,12 +102,18 @@ export function ProductInstanceForm({ productId, productInstanceId, onSubmitSucc
         }
     };
 
-    const { data: attributesResponse, error: attributesError, isLoading: isLoadingAttributes } = useAttributes();
-
-    const handleRemoveImage = (imagePath: string) => {
-        setImagesPathToRemove(prev => [...prev, imagePath]);
-        setExistingProductInstanceImages(prev => prev ? prev.filter(img => img !== imagePath) : []);
+    const handleAttributesChange = (newAttributes: AttributeValue[]) => {
+        const selectedAttributeIds = newAttributes.map(attr => attr.attributeId);
+        const uniqueIds = new Set(selectedAttributeIds);
+        if (uniqueIds.size !== selectedAttributeIds.length) {
+            setAttributesError('Attributes must be unique. You have selected one or more duplicate attributes.');
+        } else {
+            setAttributesError(null);
+        }
+        setSelectedAttributes(newAttributes);
     };
+
+    const { data: attributesResponse, error: attributesLoadError, isLoading: isLoadingAttributes } = useAttributes();
     
     if (isLoadingAttributes || fetchingInstanceProduct) {
         return (
@@ -114,10 +126,10 @@ export function ProductInstanceForm({ productId, productInstanceId, onSubmitSucc
         );
     }
 
-    if (attributesError) {
+    if (attributesLoadError) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-                <Typography color="error">{attributesError?.message}</Typography>
+                <Typography color="error">{attributesLoadError?.message}</Typography>
             </Box>
         );
     }
@@ -147,15 +159,22 @@ export function ProductInstanceForm({ productId, productInstanceId, onSubmitSucc
                 initialValues={selectedAttributes ?? []}
                 attributes={attributesResponse?.value ?? []}
                 onAttributesChange={setSelectedAttributes}
+                setAttributesError={setAttributesError}
+                attributesError={attributesError}
             />
 
             <ImageUploadField
-                name="imagesBase64.0"
+                name="imagesBase64"
                 control={control}
                 label="Product Image"
                 maxSize={15 * 1024 * 1024}
                 acceptedFileTypes={['image/jpeg', 'image/png']}
-                existingImagesUrl={existingProductInstanceImages ?? undefined}
+                existingImages={existingProductInstanceImages ?? []}
+                onRemove={(removedUrl) => {
+                    if (existingProductInstanceImages?.includes(removedUrl)) {
+                        setImagesUrlToRemove(prev => [...prev ?? [], removedUrl]);
+                    }
+                }}
             />
             
             <LoadingButton

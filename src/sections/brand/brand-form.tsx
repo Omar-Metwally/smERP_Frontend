@@ -67,9 +67,9 @@ export function BrandForm({ brandId, onSubmitSuccess }: BrandFormProps) {
                     ...changedData,
                     brandId: brandId
                 };
-                await apiService.categories.update(brandId, requestBody);
+                await apiService.brands.update(brandId, requestBody);
             } else {
-                await apiService.categories.create(data);
+                await apiService.brands.create(data);
             }
             console.log(isEditMode ? 'Brand updated successfully' : 'Brand added successfully');
             onSubmitSuccess();

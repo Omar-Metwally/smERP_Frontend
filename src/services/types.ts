@@ -61,4 +61,18 @@ export interface PaginationParameters {
     attributeId: string;
     attributeValueId: string;
   }
+
+  export interface Address {
+    country: string,
+    city: string,
+    state: string,
+    street: string,
+    postalCode: string,
+    comment?: string
+  }
   
+  export interface ApiFile {
+    isNew: boolean;
+    base64String?: string;
+    url?: string;
+  }

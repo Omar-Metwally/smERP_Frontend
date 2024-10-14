@@ -12,15 +12,10 @@ interface AddressFields {
   comment?: string;
 }
 
-type NestedAddressFields<T extends FieldValues> = {
-  [K in keyof T]: T[K] extends AddressFields ? K : never
-}[keyof T];
-
 interface AddressFieldGroupProps<TFieldValues extends FieldValues> {
   control: Control<TFieldValues>;
-  prefix: NestedAddressFields<TFieldValues>;
-  errors?: Partial<Record<keyof AddressFields, FieldError>>; // Accepts FieldError types
-  // errors?: {country: string, city: string, state: string, street: string, postalCode: string, comment: string};
+  prefix: string;
+  errors?: Partial<Record<keyof AddressFields, FieldError>>;
 }
 
 export const AddressFieldGroup = <TFieldValues extends FieldValues>({
@@ -29,7 +24,7 @@ export const AddressFieldGroup = <TFieldValues extends FieldValues>({
   errors,
 }: AddressFieldGroupProps<TFieldValues>) => {
   const createFieldName = (name: keyof AddressFields): Path<TFieldValues> =>
-    `${prefix.toString()}.${name}` as Path<TFieldValues>;
+    `${prefix}.${name}` as Path<TFieldValues>;
 
   return (
     <Grid container spacing={2}>

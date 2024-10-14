@@ -9,6 +9,7 @@ import { AttributeFormData } from 'src/sections/attribute/attribute-form';
 import { ProductFormData } from 'src/sections/product/product-form';
 import { ProductInstanceFormData } from 'src/sections/product/product-instance-form';
 import { Attribute } from 'src/sections/product/test';
+import { SupplierFormData } from 'src/sections/supplier/supplier-form';
 
 // Define the base URL for your API
 const API_BASE_URL = 'https://taambeit.runasp.net';
@@ -319,7 +320,6 @@ export const apiService = {
   },
   productInstances: {
     create: async (productId: string ,data: ProductInstanceFormData) => {
-      console.log(productId)
       const response = await fetch(`${API_BASE_URL1}products/${productId}/instances`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -336,6 +336,31 @@ export const apiService = {
       return handleResponse(response);
     },
   },
+  suppliers: {
+    create: async (data: SupplierFormData) => {
+      const response = await fetch(`${API_BASE_URL1}suppliers/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return handleResponse(response);
+    },
+    update: async (supplierId: string, data: Partial<SupplierFormData>) => {
+      const response = await fetch(`${API_BASE_URL1}suppliers/${supplierId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return handleResponse(response);
+    },
+    getById: async (supplierId: number) =>{
+      const response = await fetch(`${API_BASE_URL1}suppliers/${supplierId}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      return handleResponse(response);
+    }
+  }
 };
 
 export const fetchEntities = async <T>(
