@@ -5,12 +5,12 @@ import { FormField } from "src/components/form-fields/form-field";
 import ImageUploadField from "src/components/form-fields/image-field";
 import { useAttributes } from "src/hooks/use-attributes";
 import { apiService } from "src/services/api";
-import { AttributeSelector } from "./test";
+import { AttributeSelector } from "./attribute-selector";
 import { AttributeValue } from "src/services/types";
 import { LoadingButton } from "@mui/lab";
 
 export interface ProductInstanceFormData {
-    productId: string
+    productId: string;
     productInstanceId?: string;
     sku?: string;
     sellingPrice: string;

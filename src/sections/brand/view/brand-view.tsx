@@ -4,7 +4,7 @@ import { Iconify } from "src/components/iconify";
 import { Scrollbar } from "src/components/scrollbar";
 import { useEntities } from "src/hooks/use-entities";
 import { useTable } from "src/hooks/use-table";
-import { GenericTable } from "src/layouts/components/table/generic-table";
+import { GenericTable, TableAction } from "src/layouts/components/table/generic-table";
 import { DashboardContent } from "src/layouts/dashboard";
 import { TableColumn } from "src/services/types";
 import { BrandForm } from "../brand-form";
@@ -98,6 +98,14 @@ export function BrandView() {
         setShowForm(false);
     }
 
+    const tableActions: TableAction<BrandProps>[] = [
+        {
+          label: 'Edit',
+          icon: 'solar:pen-bold',
+          onClick: (row) => handleEditBrand(row),
+        }
+      ];
+
     return (
         <DashboardContent>
             <Box display="flex" alignItems="center" mb={5}>
@@ -129,9 +137,7 @@ export function BrandView() {
                             onSelectAllRows={(checked) => table.onSelectAllRows(checked, brands.map(brand => brand.id))}
                             onSelectRow={handleSelectRow}
                             getRowId={(row: BrandProps) => row.id}
-                            actions={{
-                                edit: handleEditBrand,
-                            }}
+                            actions={tableActions}
                         />
                         {loading && (
                             <Box

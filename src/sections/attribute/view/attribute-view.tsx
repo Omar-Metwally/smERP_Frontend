@@ -5,7 +5,7 @@ import { Scrollbar } from "src/components/scrollbar";
 import { useEntities } from "src/hooks/use-entities";
 import { useTable } from "src/hooks/use-table";
 import { CustomDialog } from "src/layouts/components/custom-dialog";
-import { GenericTable } from "src/layouts/components/table/generic-table";
+import { GenericTable, TableAction } from "src/layouts/components/table/generic-table";
 import { DashboardContent } from "src/layouts/dashboard";
 import { TableColumn } from "src/services/types";
 import { AttributeForm } from "../attribute-form";
@@ -100,6 +100,14 @@ export function AttributeView() {
         setShowForm(false);
     }
 
+    const tableActions: TableAction<AttributeProps>[] = [
+        {
+          label: 'Edit',
+          icon: 'solar:pen-bold',
+          onClick: (row) => handleEditAttribute(row),
+        }
+      ];
+
     return (
         <DashboardContent>
             <Box display="flex" alignItems="center" mb={5}>
@@ -131,9 +139,7 @@ export function AttributeView() {
                             onSelectAllRows={(checked) => table.onSelectAllRows(checked, attributes.map(attribute => attribute.id))}
                             onSelectRow={handleSelectRow}
                             getRowId={(row: AttributeProps) => row.id}
-                            actions={{
-                                edit: handleEditAttribute,
-                            }}
+                            actions={tableActions}
                         />
                         {loading && (
                             <Box

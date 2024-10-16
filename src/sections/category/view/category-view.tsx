@@ -4,7 +4,7 @@ import { Iconify } from "src/components/iconify";
 import { Scrollbar } from "src/components/scrollbar";
 import { useEntities } from "src/hooks/use-entities";
 import { useTable } from "src/hooks/use-table";
-import { GenericTable } from "src/layouts/components/table/generic-table";
+import { GenericTable, TableAction } from "src/layouts/components/table/generic-table";
 import { DashboardContent } from "src/layouts/dashboard";
 import { TableColumn } from "src/services/types";
 import { CategoryForm } from "../category-form";
@@ -89,8 +89,8 @@ export function CategoryView(){
         setShowForm(true);
     };
 
-    const handleEditCategory = (brand: CategoryProps) => {
-        setSelectedCategory(brand);
+    const handleEditCategory = (category: CategoryProps) => {
+        setSelectedCategory(category);
         setShowForm(true);
     };
 
@@ -102,6 +102,14 @@ export function CategoryView(){
     const handleFormCancel = () =>{
         setShowForm(false);
     }
+
+    const tableActions: TableAction<CategoryProps>[] = [
+        {
+          label: 'Edit',
+          icon: 'solar:pen-bold',
+          onClick: (row) => handleEditCategory(row),
+        }
+      ];
 
     return (
         <DashboardContent>
@@ -134,9 +142,7 @@ export function CategoryView(){
                             onSelectAllRows={(checked) => table.onSelectAllRows(checked, categories.map(category => category.id))}
                             onSelectRow={handleSelectRow}
                             getRowId={(row: CategoryProps) => row.id}
-                            actions={{
-                                edit: handleEditCategory,
-                            }}
+                            actions={tableActions}
                         />
                         {loading && (
                             <Box

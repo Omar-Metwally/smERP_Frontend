@@ -1,6 +1,6 @@
 import type { Theme, SxProps, Breakpoint } from '@mui/material/styles';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import ListItem from '@mui/material/ListItem';
@@ -19,6 +19,8 @@ import { Scrollbar } from 'src/components/scrollbar';
 import { WorkspacesPopover } from '../components/workspaces-popover';
 
 import type { WorkspacesPopoverProps } from '../components/workspaces-popover';
+import { Collapse } from '@mui/material';
+import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
@@ -126,53 +128,80 @@ export function NavContent({ data, slots, workspaces, sx }: NavContentProps) {
       <Scrollbar fillContent>
         <Box component="nav" display="flex" flex="1 1 auto" flexDirection="column" sx={sx}>
           <Box component="ul" gap={0.5} display="flex" flexDirection="column">
-            {data.map((item) => {
-              const isActived = item.path === pathname;
-
-              return (
-                <ListItem disableGutters disablePadding key={item.title}>
-                  <ListItemButton
-                    disableGutters
-                    component={RouterLink}
-                    href={item.path}
-                    sx={{
-                      pl: 2,
-                      py: 1,
-                      gap: 2,
-                      pr: 1.5,
-                      borderRadius: 0.75,
-                      typography: 'body2',
-                      fontWeight: 'fontWeightMedium',
-                      color: 'var(--layout-nav-item-color)',
-                      minHeight: 'var(--layout-nav-item-height)',
-                      ...(isActived && {
-                        fontWeight: 'fontWeightSemiBold',
-                        bgcolor: 'var(--layout-nav-item-active-bg)',
-                        color: 'var(--layout-nav-item-active-color)',
-                        '&:hover': {
-                          bgcolor: 'var(--layout-nav-item-hover-bg)',
-                        },
-                      }),
-                    }}
-                  >
-                    <Box component="span" sx={{ width: 24, height: 24 }}>
-                      {item.icon}
-                    </Box>
-
-                    <Box component="span" flexGrow={1}>
-                      {item.title}
-                    </Box>
-
-                    {item.info && item.info}
-                  </ListItemButton>
-                </ListItem>
-              );
-            })}
+            {data.map((item) => (
+              <NavItem key={item.title} item={item} pathname={pathname} />
+            ))}
           </Box>
         </Box>
       </Scrollbar>
 
       {slots?.bottomArea}
+    </>
+  );
+}
+
+function NavItem({ item, pathname }: { item: any; pathname: string }) {
+  const [open, setOpen] = useState(false);
+  const isActived = item.path === pathname;
+  const hasSubItems = item.subItems && item.subItems.length > 0;
+
+  const handleClick = () => {
+    if (hasSubItems) {
+      setOpen(!open);
+    }
+  };
+
+  return (
+    <>
+      <ListItem disableGutters disablePadding>
+        <ListItemButton
+          disableGutters
+          component={hasSubItems ? 'div' : RouterLink}
+          href={hasSubItems ? undefined : item.path}
+          onClick={handleClick}
+          sx={{
+            pl: 2,
+            py: 1,
+            gap: 2,
+            pr: 1.5,
+            borderRadius: 0.75,
+            typography: 'body2',
+            fontWeight: 'fontWeightMedium',
+            color: 'var(--layout-nav-item-color)',
+            minHeight: 'var(--layout-nav-item-height)',
+            ...(isActived && {
+              fontWeight: 'fontWeightSemiBold',
+              bgcolor: 'var(--layout-nav-item-active-bg)',
+              color: 'var(--layout-nav-item-active-color)',
+              '&:hover': {
+                bgcolor: 'var(--layout-nav-item-hover-bg)',
+              },
+            }),
+          }}
+        >
+          <Box component="span" sx={{ width: 24, height: 24 }}>
+            {item.icon}
+          </Box>
+
+          <Box component="span" flexGrow={1}>
+            {item.title}
+          </Box>
+
+          {item.info && item.info}
+
+          {hasSubItems && (open ? <Iconify icon='mingcute:up-line'/> : <Iconify icon='mingcute:down-line'/> )}
+        </ListItemButton>
+      </ListItem>
+
+      {hasSubItems && (
+        <Collapse in={open} timeout="auto" unmountOnExit>
+          <Box component="ul" sx={{ pl: 2 }}>
+            {item.subItems!.map((subItem: any) => (
+              <NavItem key={subItem.title} item={subItem} pathname={pathname} />
+            ))}
+          </Box>
+        </Collapse>
+      )}
     </>
   );
 }

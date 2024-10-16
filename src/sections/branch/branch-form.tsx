@@ -81,52 +81,6 @@ export function BranchForm({ branchId, onSubmitSuccess }: BranchFormProps) {
         }
     };
 
-    // const onSubmit: SubmitHandler<BranchFormData> = async (data) => {
-    //     setLoading(true);
-    //     setSubmissionError(null);
-
-    //     try {
-    //         let response;
-    //         if (isEditMode) {
-    //             const changedData = Object.keys(dirtyFields).reduce((acc: Partial<BranchFormData>, key) => {
-    //                 acc[key as keyof BranchFormData] = data[key as keyof BranchFormData];
-    //                 return acc;
-    //             }, {});
-
-    //             const requestBody = {
-    //                 ...changedData,
-    //                 branchId: branchId
-    //             };
-
-    //             response = await fetch(`http://localhost:5184/branches`, {
-    //                 method: 'PUT',
-    //                 headers: { 'Content-Type': 'application/json' },
-    //                 body: JSON.stringify(requestBody),
-    //             });
-    //         } else {
-    //             response = await fetch('http://localhost:5184/branches', {
-    //                 method: 'POST',
-    //                 headers: { 'Content-Type': 'application/json' },
-    //                 body: JSON.stringify(data),
-    //             });
-    //         }
-
-    //         if (!response.ok) {
-    //             const errorResponse = await response.json();
-    //             const errorMessages = errorResponse.errorMessages || ["An unknown error occurred."];
-    //             throw new Error(errorMessages.join(', '));
-    //         }
-
-    //         console.log(isEditMode ? 'Branch updated successfully' : 'Branch added successfully');
-    //         onSubmitSuccess();
-    //     } catch (error: any) {
-    //         console.error(error);
-    //         setSubmissionError(error.message || "An unexpected error occurred. Please try again.");
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
-
     return (
         <Box component="form" autoComplete="on" onSubmit={handleSubmit(onSubmit)}>
             <FormField<BranchFormData>

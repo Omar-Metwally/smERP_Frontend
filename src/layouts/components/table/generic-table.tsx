@@ -9,6 +9,8 @@ import {
   Box,
   TableCell,
   TableRow,
+  SxProps,
+  Theme,
 } from '@mui/material';
 import { TableColumn } from 'src/services/types';
 import { GenericTableRow } from './generic-table-row';
@@ -18,7 +20,7 @@ import { TableEmptyRows } from './generic-table-empty-row';
 import { TableNoData } from './generic-table-no-date';
 import { Scrollbar } from 'src/components/scrollbar';
 
-interface GenericTableProps<T> {
+interface GenericTableProps<T, C = any> {
   data: T[];
   columns: TableColumn<T>[];
   totalCount: number;
@@ -35,15 +37,19 @@ interface GenericTableProps<T> {
   onSelectAllRows: (checked: boolean) => void;
   onSelectRow: (event: React.ChangeEvent<HTMLInputElement>, checked: boolean, id: string) => void;
   getRowId: (row: T) => string;
-  actions?: {
-    add?: (row: T) => void;
-    edit?: (row: T) => void;
-    delete?: (row: T) => void;
-  };
+  actions?: TableAction<T, C>[];
+  actionContext?: C;  
   expandableContent?: (row: any) => React.ReactNode;
 }
 
-export function GenericTable<T>({
+export interface TableAction<T, C = any> {
+  label: string;
+  icon?: string;
+  onClick: (row: T, context?: C) => void;
+  sx?: React.CSSProperties;
+}
+
+export function GenericTable<T, C = any>({
   data,
   columns,
   totalCount,
@@ -62,7 +68,7 @@ export function GenericTable<T>({
   getRowId,
   actions,
   expandableContent
-}: GenericTableProps<T>) {
+}: GenericTableProps<T, C>) {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - totalCount) : 0;
@@ -104,7 +110,7 @@ export function GenericTable<T>({
           <TableBody>
             {data.map((row) => (
               <React.Fragment key={getRowId(row)}>
-                <GenericTableRow<T>
+                <GenericTableRow<T, C>
                   row={row}
                   columns={columns}
                   selected={selected.indexOf(getRowId(row)) !== -1}

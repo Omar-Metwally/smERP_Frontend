@@ -20,7 +20,7 @@ interface AttributeSelectorProps {
 }
 
 export const AttributeSelector: React.FC<AttributeSelectorProps> = ({ attributes, initialValues = [], onAttributesChange, setAttributesError, attributesError }) => {
-  const { control, watch, setError, clearErrors, handleSubmit } = useForm({
+  const { control } = useForm({
     defaultValues: {
       attributes: initialValues.length ? initialValues : [{ attributeId: '', attributeValueId: '' }],
     }
@@ -28,10 +28,9 @@ export const AttributeSelector: React.FC<AttributeSelectorProps> = ({ attributes
 
   const { fields, append, remove } = useFieldArray({ control, name: 'attributes' });
   const watchFieldArray = useWatch({ control, name: 'attributes' });
-  const [error, setErrorState] = useState<string | null>(null);
 
   const updateSelectedAttributes = useCallback(() => {
-    console.log(watchFieldArray)
+    
     const selectedAttributeIds = watchFieldArray?.map((field: AttributeValue) => field?.attributeId.toString()) || [];
 
     const uniqueIds = new Set(selectedAttributeIds);

@@ -11,34 +11,33 @@ import {
 import { menuItemClasses } from '@mui/material/MenuItem';
 import { Iconify } from 'src/components/iconify';
 import { TableColumn } from 'src/services/types';
+import { TableAction } from './generic-table';
 
-interface GenericTableRowProps<T> {
+interface GenericTableRowProps<T, C = any> {
   row: T;
   columns: TableColumn<T>[];
   selected: boolean;
   onSelectRow?: (event: React.ChangeEvent<HTMLInputElement>, checked: boolean, id: string) => void;
   getRowId: (row: T) => string;
-  actions?: {
-    add?: (row: T) => void;
-    edit?: (row: T) => void;
-    delete?: (row: T) => void;
-  };
+  actions?: TableAction<T, C>[];
+  actionContext?: C;
   expandable?: boolean;
   expanded?: boolean;
   onExpandClick?: () => void;
 }
 
-export function GenericTableRow<T>({
+export function GenericTableRow<T, C = any>({
   row,
   columns,
   selected,
   onSelectRow,
   getRowId,
   actions,
+  actionContext,
   expandable,
   expanded,
   onExpandClick,
-}: GenericTableRowProps<T>) {
+}: GenericTableRowProps<T, C>) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -110,24 +109,19 @@ export function GenericTableRow<T>({
               },
             }}
           >
-            {actions.add && (
-              <MenuItem onClick={() => { actions.add?.(row); handleClosePopover(); }}>
-                <Iconify icon="mingcute:add-fill" />
-                Add Instance
+            {actions.map((action, index) => (
+              <MenuItem
+                key={index}
+                onClick={() => {
+                  action.onClick(row, actionContext);
+                  handleClosePopover();
+                }}
+                sx={action.sx}
+              >
+                {action.icon && <Iconify icon={action.icon} />}
+                {action.label}
               </MenuItem>
-            )}
-            {actions.edit && (
-              <MenuItem onClick={() => { actions.edit?.(row); handleClosePopover(); }}>
-                <Iconify icon="solar:pen-bold" />
-                Edit
-              </MenuItem>
-            )}
-            {actions.delete && (
-              <MenuItem onClick={() => { actions.delete?.(row); handleClosePopover(); }} sx={{ color: 'error.main' }}>
-                <Iconify icon="solar:trash-bin-trash-bold" />
-                Delete
-              </MenuItem>
-            )}
+            ))}
           </MenuList>
         </Popover>
       )}

@@ -4,7 +4,7 @@ import { Iconify } from "src/components/iconify";
 import { Scrollbar } from "src/components/scrollbar";
 import { useEntities } from "src/hooks/use-entities";
 import { useTable } from "src/hooks/use-table";
-import { GenericTable } from "src/layouts/components/table/generic-table";
+import { GenericTable, TableAction } from "src/layouts/components/table/generic-table";
 import { DashboardContent } from "src/layouts/dashboard";
 import { TableColumn } from "src/services/types";
 import { SupplierForm } from "../supplier-form";
@@ -104,7 +104,7 @@ export function SupplierView(){
         setShowForm(true);
     };
 
-    const handleEditBrand = (brand: SupplierProps) => {
+    const handleEditSupplier = (brand: SupplierProps) => {
         setSelectedSupplier(brand);
         setShowForm(true);
     };
@@ -117,6 +117,14 @@ export function SupplierView(){
     const handleFormCancel = () => {
         setShowForm(false);
     }
+
+    const tableActions: TableAction<SupplierProps>[] = [
+        {
+          label: 'Edit',
+          icon: 'solar:pen-bold',
+          onClick: (row) => handleEditSupplier(row),
+        }
+      ];
 
     return (
         <DashboardContent>
@@ -149,9 +157,7 @@ export function SupplierView(){
                             onSelectAllRows={(checked) => table.onSelectAllRows(checked, suppliers.map(supplier => supplier.id))}
                             onSelectRow={handleSelectRow}
                             getRowId={(row: SupplierProps) => row.id}
-                            actions={{
-                                edit: handleEditBrand,
-                            }}
+                            actions={tableActions}
                         />
                         {loading && (
                             <Box

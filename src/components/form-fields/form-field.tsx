@@ -17,6 +17,7 @@ interface FormFieldProps<TFieldValues extends FieldValues> {
   render?: (field: any) => React.ReactNode;
   isNumber?: boolean;
   isReadOnly?: boolean;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
 export const FormField = <TFieldValues extends FieldValues>({
@@ -31,7 +32,8 @@ export const FormField = <TFieldValues extends FieldValues>({
   textFieldProps,
   render,
   isNumber = false,
-  isReadOnly = false
+  isReadOnly = false,
+  onChange
 }: FormFieldProps<TFieldValues>) => {
   const [showPassword, setShowPassword] = React.useState(false);
 
@@ -78,8 +80,12 @@ export const FormField = <TFieldValues extends FieldValues>({
                       ),
                     }
                   : {}),
-                  onChange: isNumber ? (event) => field.onChange(handleNumericInput(event)) : field.onChange,
-                ...(textFieldProps?.InputProps || {}),
+                  onChange: (event) => {
+                    const value = isNumber ? handleNumericInput(event).target.value : event.target.value;
+                    field.onChange(value);
+                    if (onChange) onChange(event);
+                  },
+                  ...(textFieldProps?.InputProps || {}),
               }}
             />
           )}

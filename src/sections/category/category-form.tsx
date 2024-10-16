@@ -85,52 +85,6 @@ export function CategoryForm({ categoryId, onSubmitSuccess }: CategoryFormProps)
         }
     };
 
-    // const onSubmit: SubmitHandler<CategoryFormData> = async (data) => {
-    //     setLoading(true);
-    //     setSubmissionError(null);
-
-    //     try {
-    //         let response;
-    //         if (isEditMode) {
-    //             const changedData = Object.keys(dirtyFields).reduce((acc: Partial<CategoryFormData>, key) => {
-    //                 acc[key as keyof CategoryFormData] = data[key as keyof CategoryFormData];
-    //                 return acc;
-    //             }, {});
-
-    //             const requestBody = {
-    //                 ...changedData,
-    //                 categoryId: categoryId
-    //             };
-
-    //             response = await fetch(`http://localhost:5184/categories`, {
-    //                 method: 'PUT',
-    //                 headers: { 'Content-Type': 'application/json' },
-    //                 body: JSON.stringify(requestBody),
-    //             });
-    //         } else {
-    //             response = await fetch('http://localhost:5184/categories', {
-    //                 method: 'POST',
-    //                 headers: { 'Content-Type': 'application/json' },
-    //                 body: JSON.stringify(data),
-    //             });
-    //         }
-
-    //         if (!response.ok) {
-    //             const errorResponse = await response.json();
-    //             const errorMessages = errorResponse.errorMessages || ["An unknown error occurred."];
-    //             throw new Error(errorMessages.join(', '));
-    //         }
-
-    //         console.log(isEditMode ? 'Category updated successfully' : 'Category added successfully');
-    //         onSubmitSuccess();
-    //     } catch (error: any) {
-    //         console.error(error);
-    //         setSubmissionError(error.message || "An unexpected error occurred. Please try again.");
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
-
     const { data: categoriesResponse, error: categoriesError, isLoading: isLoadingCategories } = useParentCategories();
 
     return (
@@ -158,6 +112,8 @@ export function CategoryForm({ categoryId, onSubmitSuccess }: CategoryFormProps)
                 control={control}
                 label="Parent Category"
                 options={categoriesResponse?.value ?? []}
+                error={!!errors.parentCategoryId}
+                helperText={errors.parentCategoryId?.message}
             />
 
             <LoadingButton

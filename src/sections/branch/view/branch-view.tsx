@@ -1,31 +1,43 @@
-import { Box, Typography, Button, Card, TableContainer, CircularProgress } from "@mui/material";
+import { Box, Typography, Button, Card, TableContainer, CircularProgress, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
 import { useCallback, useState } from "react";
 import { Iconify } from "src/components/iconify";
 import { Scrollbar } from "src/components/scrollbar";
 import { useEntities } from "src/hooks/use-entities";
 import { useTable } from "src/hooks/use-table";
-import { GenericTable } from "src/layouts/components/table/generic-table";
+import { GenericTable, TableAction } from "src/layouts/components/table/generic-table";
 import { DashboardContent } from "src/layouts/dashboard";
 import { TableColumn } from "src/services/types";
 import { BranchForm } from "../branch-form";
 import { CustomDialog } from "src/layouts/components/custom-dialog";
+import { GenericTableRow } from "src/layouts/components/table/generic-table-row";
+import { StorageLocationForm } from "../storage-location-form";
 
 type BranchProps = {
     id: string,
     name: string,
+    storageLocations2: StorageLocation[]
     storageLocations: string
 }
 
+type StorageLocation = {
+    id: string,
+    name: string
+}
+
 const transformBranch = (apiBranch: any): BranchProps => {
+    const locations = apiBranch.storageLocations || [];
     return {
         id: apiBranch.branchId,
         name: apiBranch.name,
-        storageLocations: apiBranch.storageLocations
-            ? apiBranch.storageLocations.map((location: { label: string }) => location.label).join(', ')
+        storageLocations2: locations.map((location: any) => ({
+            id: location.value,
+            name: location.label
+        })),
+        storageLocations: locations.length > 0
+            ? locations.map((location: any) => location.label).join(', ')
             : 'No Storage Locations',
     };
 };
-
 
 const BRANCH_TABLE_COLUMNS: TableColumn<BranchProps>[] = [
     { id: 'name', label: 'Name' },
@@ -34,8 +46,10 @@ const BRANCH_TABLE_COLUMNS: TableColumn<BranchProps>[] = [
 
 export function BranchView() {
     const [filterName, setFilterName] = useState('');
-    const [showForm, setShowForm] = useState(false);
+    const [showBranchForm, setBranchShowForm] = useState(false);
+    const [showStorageLocationForm, setShowStorageLocationForm] = useState(false);
     const [selectedBranch, setSelectedBranch] = useState<BranchProps | null>(null);
+    const [selectedStorageLocation, setSelectedStorageLocation] = useState<StorageLocation | null>(null);
 
     const table = useTable();
 
@@ -84,22 +98,64 @@ export function BranchView() {
 
     const handleAddBranch = () => {
         setSelectedBranch(null);
-        setShowForm(true);
+        setBranchShowForm(true);
     };
 
-    const handleEditBranch = (brand: BranchProps) => {
-        setSelectedBranch(brand);
-        setShowForm(true);
+    const handleEditBranch = (branch: BranchProps) => {
+        setSelectedBranch(branch);
+        setBranchShowForm(true);
     };
 
-    const handleFormClose = useCallback(() => {
-        setShowForm(false);
+    const handleAddStorageLocation = (branch: BranchProps) => {
+        setSelectedBranch(branch)
+        setSelectedStorageLocation(null)
+        setShowStorageLocationForm(true)
+    }
+
+    const handleEditStorageLocation = (branch: BranchProps, storageLocation: StorageLocation) => {
+        setSelectedBranch(branch)
+        setSelectedStorageLocation(storageLocation)
+        setShowStorageLocationForm(true)
+    }
+
+    const handleStorageLocationClose = useCallback(() => {
+        setShowStorageLocationForm(false);
         refetch();
     }, [refetch]);
 
-    const handleFormCancel = () => {
-        setShowForm(false);
+    const handleStorageLocationCancel = () => {
+        setShowStorageLocationForm(false);
     }
+
+    const handleBranchFormClose = useCallback(() => {
+        setBranchShowForm(false);
+        refetch();
+    }, [refetch]);
+
+    const handleBranchFormCancel = () => {
+        setBranchShowForm(false);
+    }
+
+    const tableActions: TableAction<BranchProps>[] = [
+        {
+            label: 'Add Storage Location',
+            icon: 'mingcute:add-fill',
+            onClick: (row) => handleAddStorageLocation(row),
+        },
+        {
+            label: 'Edit',
+            icon: 'solar:pen-bold',
+            onClick: (row) => handleEditBranch(row),
+        }
+    ];
+
+    const childTableActions: TableAction<StorageLocation>[] = [
+        {
+            label: 'Edit',
+            icon: 'solar:pen-bold',
+            onClick: (row, branch) => handleEditStorageLocation(branch, row),
+        }
+    ]
 
     return (
         <DashboardContent>
@@ -132,9 +188,38 @@ export function BranchView() {
                             onSelectAllRows={(checked) => table.onSelectAllRows(checked, branches.map(branch => branch.id))}
                             onSelectRow={handleSelectRow}
                             getRowId={(row: BranchProps) => row.id}
-                            actions={{
-                                edit: handleEditBranch,
-                            }}
+                            actions={tableActions}
+                            expandableContent={(branch: BranchProps) => (
+                                <>
+                                    <Typography variant="h6" gutterBottom component="div">
+                                        Storage Locations
+                                    </Typography>
+                                    <Table size="small" aria-label="instances">
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell>Name</TableCell>
+                                                <TableCell />
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {branch.storageLocations2?.map((storageLocation) => (
+                                                <GenericTableRow<StorageLocation, BranchProps>
+                                                    key={storageLocation.id}
+                                                    row={storageLocation}
+                                                    columns={[
+                                                        { id: 'name', label: 'Name', align: 'left' },
+                                                    ]}
+                                                    selected={false}
+                                                    getRowId={(row) => row.id}
+                                                    actions={childTableActions}
+                                                    actionContext={branch}
+                                                    expandable={false}
+                                                />
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </>
+                            )}
                         />
                         {loading && (
                             <Box
@@ -176,7 +261,8 @@ export function BranchView() {
                     </TableContainer>
                 </Scrollbar>
             </Card>
-            <CustomDialog open={showForm} handleCancel={handleFormCancel} title={selectedBranch?.id ? 'Edit branch' : 'Add new branch'} content={<BranchForm branchId={selectedBranch?.id} onSubmitSuccess={handleFormClose} />} />
+            <CustomDialog open={showBranchForm} handleCancel={handleBranchFormCancel} title={selectedBranch?.id ? 'Edit branch' : 'Add new branch'} content={<BranchForm branchId={selectedBranch?.id} onSubmitSuccess={handleBranchFormClose} />} />
+            <CustomDialog open={showStorageLocationForm} handleCancel={handleStorageLocationCancel} title={selectedBranch?.id ? 'Edit storage location' : 'Add new storage location'} content={<StorageLocationForm storageLocationsId={selectedStorageLocation?.id} branchId={selectedBranch?.id ?? ''} onSubmitSuccess={handleStorageLocationClose} />} />
         </DashboardContent>
     )
 }

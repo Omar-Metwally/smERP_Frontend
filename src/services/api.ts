@@ -1,6 +1,6 @@
 import { useMutation, useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { jwtDecode } from 'jwt-decode';
-import { ApiPaginatedResponse, ApiResponse, AttributeSelectOption, PaginationParameters, SelectOption } from './types';
+import { ApiPaginatedResponse, ApiResponse, AttributeSelectOption, BranchOption, PaginationParameters, ProductOption, SelectOption } from './types';
 import { BranchFormData } from 'src/sections/branch/branch-form';
 import { BrandFormData } from 'src/sections/brand/brand-form';
 import { CategoryFormData } from 'src/sections/category/category-form';
@@ -8,8 +8,10 @@ import { UserFormData } from 'src/sections/user/add-new-user';
 import { AttributeFormData } from 'src/sections/attribute/attribute-form';
 import { ProductFormData } from 'src/sections/product/product-form';
 import { ProductInstanceFormData } from 'src/sections/product/product-instance-form';
-import { Attribute } from 'src/sections/product/test';
+import { Attribute } from 'src/sections/product/attribute-selector';
 import { SupplierFormData } from 'src/sections/supplier/supplier-form';
+import { ProcurementFormData } from 'src/sections/transaction/procurement/procurement-form';
+import { StorageLocationFormData } from 'src/sections/branch/storage-location-form';
 
 // Define the base URL for your API
 const API_BASE_URL = 'https://taambeit.runasp.net';
@@ -360,6 +362,58 @@ export const apiService = {
       });
       return handleResponse(response);
     }
+  },
+  procurements: {
+    create: async (data: ProcurementFormData) => {
+      const response = await fetch(`${API_BASE_URL1}procurementTransactions/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return handleResponse(response);
+    },
+    update: async (procurementTransactionId: string, data: Partial<ProcurementFormData>) => {
+      const response = await fetch(`${API_BASE_URL1}procurementTransactions/${procurementTransactionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return handleResponse(response);
+    },
+    getById: async (procurementTransactionId: number) =>{
+      const response = await fetch(`${API_BASE_URL1}procurementTransactions/${procurementTransactionId}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      return handleResponse(response);
+    }
+  },
+  storageLocations: {
+    create: async (branchId: string,data: StorageLocationFormData) => {
+      const response = await fetch(`${API_BASE_URL1}branches/${branchId}/storage-locations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return handleResponse(response);
+    },
+    update: async (branchId: string, storageLocationId: string, data: Partial<StorageLocationFormData>) => {
+      data.branchId = branchId;
+      data.storageLocationsId = storageLocationId;
+      const response = await fetch(`${API_BASE_URL1}branches/${branchId}/storage-locations/${storageLocationId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return handleResponse(response);
+    },
+    getById: async (branchId: string, storageLocationId: string) =>{
+      const response = await fetch(`${API_BASE_URL1}branches/${branchId}/storage-locations/${storageLocationId}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      return handleResponse(response);
+    }
   }
 };
 
@@ -393,6 +447,17 @@ export const fetchBranches = async (): Promise<ApiResponse<SelectOption[]>> => {
   }
 
   const result: ApiResponse<SelectOption[]> = await response.json();
+  return result;
+};
+
+export const fetchBranchesWithStorageLocations = async (): Promise<ApiResponse<BranchOption[]>> => {
+  const response = await fetch(`${API_BASE_URL1}branches/list-with-storage-locations`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch branches');
+  }
+
+  const result: ApiResponse<BranchOption[]> = await response.json();
   return result;
 };
 
@@ -448,6 +513,28 @@ export const fetchProductCategories = async (): Promise<ApiResponse<SelectOption
   }
 
   const result: ApiResponse<SelectOption[]> = await response.json();
+  return result;
+};
+
+export const fetchSuppliers = async (): Promise<ApiResponse<SelectOption[]>> => {
+  const response = await fetch(`${API_BASE_URL1}suppliers/list`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch suppliers');
+  }
+
+  const result: ApiResponse<SelectOption[]> = await response.json();
+  return result;
+};
+
+export const fetchProducts = async (): Promise<ApiResponse<ProductOption[]>> => {
+  const response = await fetch(`${API_BASE_URL1}products/list`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch products');
+  }
+
+  const result: ApiResponse<ProductOption[]> = await response.json();
   return result;
 };
 

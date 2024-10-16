@@ -6,7 +6,7 @@ import { Scrollbar } from "src/components/scrollbar";
 import { useEntities } from "src/hooks/use-entities";
 import { useTable } from "src/hooks/use-table";
 import { CustomDialog } from "src/layouts/components/custom-dialog";
-import { GenericTable } from "src/layouts/components/table/generic-table";
+import { GenericTable, TableAction } from "src/layouts/components/table/generic-table";
 import { DashboardContent } from "src/layouts/dashboard";
 import { AttributeForm } from "src/sections/attribute/attribute-form";
 import { TableColumn } from "src/services/types";
@@ -184,18 +184,33 @@ export function ProductsView() {
     setShowProductInstanceForm(false);
   }
 
+  const tableActions: TableAction<ProductProps>[] = [
+    {
+      label: 'Add Product Instance',
+      icon: 'mingcute:add-fill',
+      onClick: (row) => handleAddInstance(row),
+    },
+    {
+      label: 'Edit',
+      icon: 'solar:pen-bold',
+      onClick: (row) => handleEditProduct(row),
+    }
+  ];
+
+  const childTableActions: TableAction<ProductInstanceProps>[] = [
+    {
+      label: 'Edit',
+      icon: 'solar:pen-bold',
+      onClick: (row, product) => handleEditInstance(product, row),
+    }
+  ]
+
   return (
     <DashboardContent>
       <Box display="flex" alignItems="center" mb={5} flexDirection={{ xs: 'column', sm: 'row' }} gap={1}>
         <Typography variant="h4" flexGrow={1}>
           Products
         </Typography>
-        {/* <Button variant="contained" color="inherit" onClick={handleAddProduct} startIcon={<Iconify icon="mingcute:add-line" />}>
-          New brand
-        </Button>
-        <Button variant="contained" color="inherit" onClick={handleAddProduct} startIcon={<Iconify icon="mingcute:add-line" />}>
-          New category
-        </Button> */}
         <Button variant="contained" color="inherit" onClick={handleAddAttribute} startIcon={<Iconify icon="mingcute:add-line" />}>
           New attribute
         </Button>
@@ -205,113 +220,109 @@ export function ProductsView() {
       </Box>
 
       <Card>
-        <Scrollbar>
-          <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
-            <GenericTable
-              data={products}
-              columns={PRODUCT_TABLE_COLUMNS}
-              totalCount={totalCount}
-              page={table.page}
-              rowsPerPage={table.rowsPerPage}
-              orderBy={table.orderBy}
-              order={table.order}
-              selected={table.selected}
-              filterName={filterName}
-              onFilterName={handleFilterName}
-              onChangePage={handleChangePage}
-              onChangeRowsPerPage={handleChangeRowsPerPage}
-              onSort={handleSort}
-              onSelectAllRows={(checked) => table.onSelectAllRows(checked, products.map(product => product.id))}
-              onSelectRow={handleSelectRow}
-              getRowId={(row: ProductProps) => row.id}
-              actions={{
-                add: handleAddInstance,
-                edit: handleEditProduct,
-              }}
-              expandableContent={(product: ProductProps) => (
-                <>
-                  <Typography variant="h6" gutterBottom component="div">
-                    Instances
-                  </Typography>
-                  <Table size="small" aria-label="instances">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>SKU</TableCell>
-                        <TableCell>Quantity</TableCell>
-                        <TableCell>Buy Price</TableCell>
-                        <TableCell>Sell Price</TableCell>
-                        <TableCell align="center">Image</TableCell>
-                        <TableCell/>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
+        <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
+          <GenericTable
+            data={products}
+            columns={PRODUCT_TABLE_COLUMNS}
+            totalCount={totalCount}
+            page={table.page}
+            rowsPerPage={table.rowsPerPage}
+            orderBy={table.orderBy}
+            order={table.order}
+            selected={table.selected}
+            filterName={filterName}
+            onFilterName={handleFilterName}
+            onChangePage={handleChangePage}
+            onChangeRowsPerPage={handleChangeRowsPerPage}
+            onSort={handleSort}
+            onSelectAllRows={(checked) => table.onSelectAllRows(checked, products.map(product => product.id))}
+            onSelectRow={handleSelectRow}
+            getRowId={(row: ProductProps) => row.id}
+            actions={tableActions}
+            expandableContent={(product: ProductProps) => (
+              <>
+                <Typography variant="h6" gutterBottom component="div">
+                  Instances
+                </Typography>
+                <Table size="small" aria-label="instances">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>SKU</TableCell>
+                      <TableCell>Quantity</TableCell>
+                      <TableCell>Buy Price</TableCell>
+                      <TableCell>Sell Price</TableCell>
+                      <TableCell align="center">Image</TableCell>
+                      <TableCell />
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
                     {product.instances?.map((instance) => (
-                      <GenericTableRow
+                      <GenericTableRow<ProductInstanceProps, ProductProps>
                         key={instance.id}
                         row={instance}
                         columns={[
-                          { id: 'sku', label:'SKU', align: 'left' },
-                          { id: 'qty', label:'SKU', align: 'left' },
-                          { id: 'buyPrice', label:'SKU', align: 'left' },
-                          { id: 'sellPrice', label:'SKU', align: 'left' },
-                          { id: 'image', label:'SKU', align: 'center', render: () => (
-                            <img src={instance.image} alt={instance.sku} width="100" />
-                          ) },
+                          { id: 'sku', label: 'SKU', align: 'left' },
+                          { id: 'qty', label: 'Quantity', align: 'left' },
+                          { id: 'buyPrice', label: 'Buy Price', align: 'left' },
+                          { id: 'sellPrice', label: 'Sell Price', align: 'left' },
+                          {
+                            id: 'image', label: 'Image', align: 'center', render: () => (
+                              <img src={instance.image} alt={instance.sku} width="100" />
+                            )
+                          },
                         ]}
-                        selected={false} 
+                        selected={false}
                         getRowId={(row) => row.id}
-                        actions={{
-                          edit: (instance) => handleEditInstance(product, instance),
-                        }}
+                        actions={childTableActions}
+                        actionContext={product}
                         expandable={false}
                       />
                     ))}
-                    </TableBody>
-                  </Table>
-                </>
-              )} />
-            {loading && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  bgcolor: 'rgba(255, 255, 255, 0.8)',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  zIndex: 10,
-                }}
-              >
-                <CircularProgress />
-              </Box>
-            )}
+                  </TableBody>
+                </Table>
+              </>
+            )} />
+          {loading && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                bgcolor: 'rgba(255, 255, 255, 0.8)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 10,
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          )}
 
-            {error && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  bgcolor: 'rgba(255, 255, 255, 0.8)',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  zIndex: 10,
-                }}
-              >
-                {error}
-              </Box>
-            )}
-          </TableContainer>
-        </Scrollbar>
+          {error && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                bgcolor: 'rgba(255, 255, 255, 0.8)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 10,
+              }}
+            >
+              {error}
+            </Box>
+          )}
+        </TableContainer>
       </Card>
       <CustomDialog open={showProductForm} handleCancel={handleProductFormCancel} title={selectedProduct?.id ? 'Edit product' : 'Add new product'} content={<ProductForm productId={selectedProduct?.id} onSubmitSuccess={handleProductFormClose} />} />
-      <CustomDialog open={showProductInstanceForm} handleCancel={handleProductInstanceFormCancel} title={selectedProductInstance?.id ? 'Edit product instance' : 'Add new product instance'} content={<ProductInstanceForm productId={selectedProduct?.id ?? 'g'} productInstanceId={selectedProductInstance?.id} onSubmitSuccess={handleProductInstanceFormClose} />} />
+      <CustomDialog open={showProductInstanceForm} handleCancel={handleProductInstanceFormCancel} title={selectedProductInstance?.id ? 'Edit product instance' : 'Add new product instance'} content={<ProductInstanceForm productId={selectedProduct?.id ?? ''} productInstanceId={selectedProductInstance?.id} onSubmitSuccess={handleProductInstanceFormClose} />} />
       <CustomDialog open={showAttributeForm} handleCancel={handleAttributeFormCancel} title={'Add new attribute'} content={<AttributeForm onSubmitSuccess={handleAttributeFormClose} />} />
     </DashboardContent>
   )

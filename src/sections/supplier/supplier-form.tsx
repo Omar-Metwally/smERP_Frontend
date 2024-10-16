@@ -40,7 +40,7 @@ export function SupplierForm({ supplierId, onSubmitSuccess }: SupplierFormProps)
     });
 
     useEffect(() => {
-        const fetchBrandData = async () => {
+        const fetchSupplierData = async () => {
             if (supplierId) {
                 setFetchingSupplier(true);
                 const response = await apiService.suppliers.getById(Number(supplierId))
@@ -54,7 +54,7 @@ export function SupplierForm({ supplierId, onSubmitSuccess }: SupplierFormProps)
             }
         };
 
-        fetchBrandData();
+        fetchSupplierData();
     }, [supplierId, reset]);
 
     const onSubmit: SubmitHandler<SupplierFormData> = async (data) => {

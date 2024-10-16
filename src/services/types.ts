@@ -52,6 +52,26 @@ export interface PaginationParameters {
     value: string;
     label: string;
   }
+
+  export interface BranchOption {
+    branchId: string;
+    name: string;
+    storageLocations: StorageLocationOption[]
+  }
+
+  export interface StorageLocationOption {
+    storageLocationId: string;
+    name: string
+  }
+
+  export interface ProductOption {
+    productId: string;
+    productInstanceId: string;
+    name: string;
+    shelfLifeInDays?: number;
+    isWarranted: boolean;
+    isTracked: boolean;
+  }
   
   export interface AttributeSelectOption extends SelectOption{
     values: SelectOption[]

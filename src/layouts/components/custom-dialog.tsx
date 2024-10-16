@@ -38,7 +38,7 @@ export function CustomDialog({
   return (
     <BootstrapDialog
       PaperProps={{
-        sx: { minWidth: '50%', width: 'min-content', maxWidth: '100%' },
+        sx: { minWidth: '380px', width: '60%', maxWidth: '100%' },
       }}
       onClose={handleCancel}
       aria-labelledby="customized-dialog-title"

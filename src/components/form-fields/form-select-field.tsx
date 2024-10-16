@@ -1,5 +1,5 @@
 import React from 'react';
-import { FormControl, InputLabel, Select, MenuItem, SelectProps, FormHelperText } from '@mui/material';
+import { FormControl, InputLabel, Select, MenuItem, SelectProps, FormHelperText, SelectChangeEvent } from '@mui/material';
 import { Controller, Control, FieldValues, Path, RegisterOptions, FieldPath, PathValue } from 'react-hook-form';
 
 interface SelectOption {
@@ -17,7 +17,7 @@ interface FormSelectFieldProps<TFieldValues extends FieldValues> {
   error?: boolean;
   helperText?: string;
   selectProps?: Omit<SelectProps, 'name' | 'control' | 'label' | 'error'>;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (value: string, event: SelectChangeEvent<unknown>) => void; // Update to use SelectChangeEvent
 }
 
 export const FormSelectField = <TFieldValues extends FieldValues>({
@@ -30,6 +30,7 @@ export const FormSelectField = <TFieldValues extends FieldValues>({
   error,
   helperText,
   selectProps,
+  onChange
 }: FormSelectFieldProps<TFieldValues>) => {
   const [selectOptions, setSelectOptions] = React.useState<SelectOption[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -68,7 +69,10 @@ export const FormSelectField = <TFieldValues extends FieldValues>({
             label={label}
             disabled={isLoading}
             value={isLoading ? '' : field.value}
-          >
+            onChange={(event) => {
+              field.onChange(event.target.value);
+              if (onChange) onChange(event.target.value as string, event);
+            }}       >
             {selectOptions.map((option) => (
               <MenuItem key={option.value} value={option.value}>
                 {option.label}

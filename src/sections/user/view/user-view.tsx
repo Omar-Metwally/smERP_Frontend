@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Box, Button, Card, CircularProgress, TableContainer, Typography } from '@mui/material';
 import { useEntities } from 'src/hooks/use-entities';
 import { useTable } from 'src/hooks/use-table';
-import { GenericTable } from 'src/layouts/components/table/generic-table';
+import { GenericTable, TableAction } from 'src/layouts/components/table/generic-table';
 import { SelectOption, TableColumn } from 'src/services/types';
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -136,6 +136,14 @@ export function UserView() {
     setShowForm(true);
   };
 
+  const tableActions: TableAction<UserProps>[] = [
+    {
+      label: 'Edit',
+      icon: 'solar:pen-bold',
+      onClick: (row) => handleEditUser(row),
+    }
+  ];
+
   return (
     <DashboardContent>
       <Box display="flex" alignItems="center" mb={5}>
@@ -167,9 +175,7 @@ export function UserView() {
               onSelectAllRows={(checked) => table.onSelectAllRows(checked, users.map(user => user.id))}
               onSelectRow={handleSelectRow}
               getRowId={(row: UserProps) => row.id}
-              actions={{
-                edit: handleEditUser,
-              }}
+              actions={tableActions}
             />
             {loading && (
               <Box
