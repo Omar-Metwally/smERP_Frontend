@@ -4,7 +4,8 @@ This is the frontend application for smERP, a small Enterprise Resource Planning
 
 ## Project Overview
 
-This frontend application complements the smERP backend, providing a user-friendly interface for interacting with the ERP system. It showcases modern web development practices and utilizes a comprehensive set of libraries and tools to create a robust and scalable application.
+This frontend application complements the smERP backend, providing a user-friendly interface for interacting with the ERP system.
+I used React instead of Angular which is commonly used with .NET to familiars myself with react
 
 ## Technologies Used
 
