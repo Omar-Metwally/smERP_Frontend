@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Button, Grid, IconButton, Typography } from '@mui/material';
-import { useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { Control, FieldErrors, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { FormSelectField } from 'src/components/form-fields/form-select-field';
 import { Iconify } from 'src/components/iconify';
 import { AttributeValue } from 'src/services/types';
+import { ProductInstanceFormData } from './product-instance-form';
 
 export interface Attribute {
   value: number;
@@ -17,20 +18,22 @@ interface AttributeSelectorProps {
   onAttributesChange: (selectedAttributes: AttributeValue[]) => void;
   setAttributesError: React.Dispatch<React.SetStateAction<string | null>>
   attributesError: string | null
+  control: Control<any>;
+  errors: FieldErrors<ProductInstanceFormData>
 }
 
-export const AttributeSelector: React.FC<AttributeSelectorProps> = ({ attributes, initialValues = [], onAttributesChange, setAttributesError, attributesError }) => {
-  const { control } = useForm({
-    defaultValues: {
-      attributes: initialValues.length ? initialValues : [{ attributeId: '', attributeValueId: '' }],
-    }
-  });
+export const AttributeSelector: React.FC<AttributeSelectorProps> = ({ attributes, initialValues = [], onAttributesChange, setAttributesError, attributesError, control, errors }) => {
+  // const { control } = useForm({
+  //   defaultValues: {
+  //     attributes: initialValues.length ? initialValues : [{ attributeId: '', attributeValueId: '' }],
+  //   }
+  // });
 
   const { fields, append, remove } = useFieldArray({ control, name: 'attributes' });
   const watchFieldArray = useWatch({ control, name: 'attributes' });
 
   const updateSelectedAttributes = useCallback(() => {
-    
+
     const selectedAttributeIds = watchFieldArray?.map((field: AttributeValue) => field?.attributeId.toString()) || [];
 
     const uniqueIds = new Set(selectedAttributeIds);
@@ -61,7 +64,7 @@ export const AttributeSelector: React.FC<AttributeSelectorProps> = ({ attributes
     if (!attributeId) return [];
     const attribute = attributes.find(attr => attr.value.toString() === attributeId.toString());
     return attribute ? attribute.values.map(val => ({ value: (val as any).value, label: (val as any).label })) : [];
-  };  
+  };
 
   return (
     <>
@@ -77,6 +80,8 @@ export const AttributeSelector: React.FC<AttributeSelectorProps> = ({ attributes
                 label: attr.label
               }))}
               rules={{ required: 'Attribute is required' }}
+              error={!!errors.attributes?.[index]?.attributeId}
+              helperText={errors.attributes?.[index]?.attributeId?.message || ''}
             />
             <FormSelectField
               name={`attributes.${index}.attributeValueId`}
@@ -84,12 +89,15 @@ export const AttributeSelector: React.FC<AttributeSelectorProps> = ({ attributes
               label="Value"
               options={getValueOptions(index)}
               rules={{ required: 'Value is required' }}
+              error={!!errors.attributes?.[index]?.attributeValueId}
+              helperText={errors.attributes?.[index]?.attributeValueId?.message || ''}
             />
             <IconButton onClick={() => remove(index)}>
               <Iconify icon={'mingcute:delete-2-line'} />
             </IconButton>
           </Grid>
         ))}
+
         <Button
           onClick={handleAddAttribute}
           variant="contained"

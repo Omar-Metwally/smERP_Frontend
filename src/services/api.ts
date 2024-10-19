@@ -12,14 +12,16 @@ import { Attribute } from 'src/sections/product/attribute-selector';
 import { SupplierFormData } from 'src/sections/supplier/supplier-form';
 import { ProcurementFormData } from 'src/sections/transaction/procurement/procurement-form';
 import { StorageLocationFormData } from 'src/sections/branch/storage-location-form';
+import { PaymentFormData } from 'src/sections/transaction/procurement/payment-form';
+import { TransactionProductFormData } from 'src/sections/transaction/procurement/product-form';
 
 // Define the base URL for your API
-const API_BASE_URL = 'https://taambeit.runasp.net';
+const API_BASE_URL = 'http://localhost:5184';
 
 // Types for our auth responses
 interface LoginResponse {
-  jwt: string;
-  user: User;
+  token: string;
+  refreshTokenExpirationDate: Date;
 }
 
 interface RefreshResponse {
@@ -28,9 +30,12 @@ interface RefreshResponse {
 
 interface User {
   id: string;
+  firstName:string;
+  lastName:string;
   email: string;
-  role: string[];
-  unique_name: string
+  roles: string[];
+  branch: string;
+  unique_name: string;
 }
 
 interface JwtPayload {
@@ -62,7 +67,7 @@ const apiCall = async <T>(
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
-    credentials: 'include', // This is important for sending and receiving cookies
+    credentials: 'include',
   });
 
   if (!response.ok) {
@@ -74,11 +79,11 @@ const apiCall = async <T>(
 
 // Function to handle login
 const loginUser = async (credentials: { email: string; password: string }) => {
-  const data = await apiCall<LoginResponse>('/Auth/login', 'POST', credentials);
-  localStorage.setItem('accessToken', data.jwt);
-  const user: User = jwtDecode<User>(data.jwt)
+  const data = await apiCall<ApiResponse<LoginResponse>>('/Auth/login', 'POST', credentials);
+  localStorage.setItem('accessToken', data.value.token);
+  const user: User = jwtDecode<User>(data.value.token)
   localStorage.setItem('user', JSON.stringify(user));
-  return data;
+  return user;
 };
 
 // Function to handle logout
@@ -138,7 +143,6 @@ export const isTokenExpired = (token?: string): boolean => {
   }
 };
 
-// Custom hook to get authenticated fetch function
 export const useAuthenticatedFetch = () => {
   const refreshTokenMutation = useRefreshToken();
 
@@ -213,11 +217,10 @@ async function handleResponse(response: Response) {
 export const apiService = {
   users: {
     create: async (data: UserFormData) => {
-      const request = { ...data, roles: data.roles.map((role: any) => role.value) };
       const response = await fetch(`${API_BASE_URL1}auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(request),
+        body: JSON.stringify(data),
       });
       return handleResponse(response);
     },
@@ -386,6 +389,70 @@ export const apiService = {
         headers: { 'Content-Type': 'application/json' },
       });
       return handleResponse(response);
+    },
+    payments: {
+      get: async (transactionId: string, paymentId: string) => {
+        const response = await fetch(`${API_BASE_URL1}procurementTransactions/${transactionId}/payments/${paymentId}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        return handleResponse(response);
+      },
+      create: async (data: PaymentFormData) => {
+        const response = await fetch(`${API_BASE_URL1}procurementTransactions/payments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        return handleResponse(response);
+      },
+      update: async (data: Partial<PaymentFormData>) => {
+        const response = await fetch(`${API_BASE_URL1}procurementTransactions/payments`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        return handleResponse(response);
+      },
+      delete: async (transactionId: string, paymentId: string) => {
+        const response = await fetch(`${API_BASE_URL1}procurementTransactions/${transactionId}/payments/${paymentId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        return handleResponse(response);
+      }
+    },
+    products: {
+      get: async (transactionId: string, productId: string) => {
+        const response = await fetch(`${API_BASE_URL1}procurementTransactions/${transactionId}/products/${productId}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        return handleResponse(response);
+      },
+      create: async (data: TransactionProductFormData) => {
+        const response = await fetch(`${API_BASE_URL1}procurementTransactions/products`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        return handleResponse(response);
+      },
+      update: async (data: Partial<TransactionProductFormData>) => {
+        const response = await fetch(`${API_BASE_URL1}procurementTransactions/products`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        return handleResponse(response);
+      },
+      delete: async (transactionId: string, productId: string) => {
+        const response = await fetch(`${API_BASE_URL1}procurementTransactions/${transactionId}/products/${productId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        return handleResponse(response);
+      }
     }
   },
   storageLocations: {
@@ -417,9 +484,61 @@ export const apiService = {
   }
 };
 
+// export const fetchEntities = async <T>(
+//   endpoint: string,
+//   params: PaginationParameters
+// ): Promise<ApiPaginatedResponse<T>> => {
+//   const queryString = new URLSearchParams(
+//     Object.entries(params).reduce((acc, [key, value]) => {
+//       if (value != null && value !== '') {
+//         acc[key] = String(value);
+//       }
+//       return acc;
+//     }, {} as Record<string, string>)
+//   ).toString();
+
+//   const response = await fetch(`${API_BASE_URL1}${endpoint}${queryString ? `?${queryString}` : ''}`);
+
+//   if (!response.ok) {
+//     throw new Error(`Failed to fetch ${endpoint}`);
+//   }
+
+//   return response.json();
+// };
+
+// export const fetchEntities = async <T>(
+//   endpoint: string,
+//   params: PaginationParameters,
+// ): Promise<ApiPaginatedResponse<T>> => {
+//   const queryString = new URLSearchParams(
+//     Object.entries(params).reduce((acc, [key, value]) => {
+//       if (value != null && value !== '') {
+//         acc[key] = String(value);
+//       }
+//       return acc;
+//     }, {} as Record<string, string>)
+//   ).toString();
+
+//   const accessToken = localStorage.getItem('accessToken');
+
+//   const response = await fetch(`${API_BASE_URL1}${endpoint}${queryString ? `?${queryString}` : ''}`, {
+//     method: 'GET',
+//     headers: {
+//       'Authorization': `Bearer ${accessToken}`,
+//     },
+//   });
+
+//   if (!response.ok) {
+//     throw new Error(`Failed to fetch ${endpoint}`);
+//   }
+
+//   return response.json();
+// };
+
 export const fetchEntities = async <T>(
+  authenticatedFetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
   endpoint: string,
-  params: PaginationParameters
+  params: PaginationParameters,
 ): Promise<ApiPaginatedResponse<T>> => {
   const queryString = new URLSearchParams(
     Object.entries(params).reduce((acc, [key, value]) => {
@@ -430,7 +549,9 @@ export const fetchEntities = async <T>(
     }, {} as Record<string, string>)
   ).toString();
 
-  const response = await fetch(`${API_BASE_URL1}${endpoint}${queryString ? `?${queryString}` : ''}`);
+  const response = await authenticatedFetch(`${API_BASE_URL1}${endpoint}${queryString ? `?${queryString}` : ''}`, {
+    method: 'GET',
+  });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch ${endpoint}`);

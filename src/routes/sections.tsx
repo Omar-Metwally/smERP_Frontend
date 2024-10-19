@@ -66,8 +66,37 @@ export function Router() {
         { path: 'transactions/sales', element: <SalesPage /> },
         { path: 'transactions/adjustment', element: <AdjustmentPage /> },
         { path: 'supplier', element: <SuppliersPage /> },
-        { path: 'supplier', element: <SuppliersPage /> },
         { path: 'blog', element: <BlogPage /> },
+      ],
+    },
+    {
+      element: (
+          <ProtectedRoute requiredRoles={['branchManager', 'admin']} fallback={renderFallback}>
+            <DashboardLayout>
+              <Suspense fallback={renderFallback}>
+                <Outlet />
+              </Suspense>
+            </DashboardLayout>
+          </ProtectedRoute>
+      ),
+      children: [
+        { element: <HomePage />, index: true },
+        { path: 'user', element: <UserPage /> },
+      ],
+    },
+    {
+      element: (
+          <ProtectedRoute requiredRoles={['admin']} fallback={renderFallback}>
+            <DashboardLayout>
+              <Suspense fallback={renderFallback}>
+                <Outlet />
+              </Suspense>
+            </DashboardLayout>
+          </ProtectedRoute>
+      ),
+      children: [
+        { element: <HomePage />, index: true },
+        { path: 'branch', element: <BranchPage /> },
       ],
     },
     {

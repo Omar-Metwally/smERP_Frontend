@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { fetchEntities } from 'src/services/api';
+import { fetchEntities, useAuthenticatedFetch } from 'src/services/api';
 import { PaginationParameters, ApiPaginatedResponse } from 'src/services/types';
 
 export const useEntities = <T>(
@@ -13,11 +13,13 @@ export const useEntities = <T>(
   const [totalCount, setTotalCount] = useState(0);
   const [params, setParams] = useState<PaginationParameters>(initialParams);
 
+  const authenticatedFetch = useAuthenticatedFetch();
+  
   const getEntities = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const apiResponse: ApiPaginatedResponse<T[]> = await fetchEntities<T[]>(endpoint, params);
+      const apiResponse: ApiPaginatedResponse<T[]> = await fetchEntities<T[]>(authenticatedFetch,endpoint, params);
       if (apiResponse.isSuccess && apiResponse.value.data) {
         setEntities(transformEntity ? apiResponse.value.data.map(transformEntity) : apiResponse.value.data);
         setTotalCount(apiResponse.value.totalCount);

@@ -69,7 +69,7 @@ const ProductEntry: React.FC<ProductEntryProps> = ({
           control={control}
           rules={{ required: 'Unit Price is required', min: { value: 1, message: 'Unit Price must be at least 1' } }}
           label="Unit Price"
-          isNumber
+          isCurrency
           error={!!errors?.products?.[index]?.unitPrice}
           helperText={errors?.products?.[index]?.unitPrice.message ?? ''}
         />

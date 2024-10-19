@@ -15,26 +15,6 @@ export default function App() {
 
   const queryClient = new QueryClient()
 
-  // const githubButton = (
-  //   <Fab
-  //     size="medium"
-  //     aria-label="Github"
-  //     href="https://github.com/minimal-ui-kit/material-kit-react"
-  //     sx={{
-  //       zIndex: 9,
-  //       right: 20,
-  //       bottom: 20,
-  //       width: 44,
-  //       height: 44,
-  //       position: 'fixed',
-  //       bgcolor: 'grey.800',
-  //       color: 'common.white',
-  //     }}
-  //   >
-  //     <Iconify width={24} icon="eva:github-fill" />
-  //   </Fab>
-  // );
-
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
@@ -46,7 +26,6 @@ export default function App() {
           </PopupProvider>
         </AuthProvider>
       </QueryClientProvider>
-      {/* {githubButton} */}
     </ThemeProvider>
   );
 }

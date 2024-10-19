@@ -75,7 +75,7 @@ export function SupplierForm({ supplierId, onSubmitSuccess }: SupplierFormProps)
             } else {
                 await apiService.suppliers.create(data);
             }
-            console.log(isEditMode ? 'Brand updated successfully' : 'Brand added successfully');
+            console.log(isEditMode ? 'Supplier updated successfully' : 'Supplier added successfully');
             onSubmitSuccess();
         } catch (error: any) {
             console.error(error);

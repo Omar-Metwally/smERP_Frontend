@@ -133,7 +133,6 @@ export function ProcurementForm({ procurementTransactionId, onSubmitSuccess }: P
     }, [procurementTransactionId, reset]);
 
     const onSubmit: SubmitHandler<ProcurementFormData> = async (data) => {
-        console.log(data)
         setLoading(true);
         setSubmissionError(null);
         try {

@@ -96,3 +96,12 @@ export interface PaginationParameters {
     base64String?: string;
     url?: string;
   }
+
+  export interface Notification {
+    id: string;
+    branchId?: string;
+    message: string;
+    userPolicy: string;
+    level: string;
+    type: string;
+}

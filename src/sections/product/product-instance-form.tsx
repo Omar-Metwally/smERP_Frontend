@@ -46,7 +46,7 @@ export function ProductInstanceForm({ productId, productInstanceId, onSubmitSucc
         },
     });
 
-    const { fields, append, remove } = useFieldArray({ control, name: 'attributes' });
+    // const { fields, append, remove } = useFieldArray({ control, name: 'attributes' });
     
     useEffect(() => {
         const fetchProductInstanceData = async () => {
@@ -75,6 +75,7 @@ export function ProductInstanceForm({ productId, productInstanceId, onSubmitSucc
     }, [productInstanceId, reset]);
 
     const onSubmit: SubmitHandler<ProductInstanceFormData> = async (data) => {
+        console.log(data, selectedAttributes)
         if (attributesError) return;
         setLoading(true);
         setSubmissionError(null);
@@ -102,20 +103,20 @@ export function ProductInstanceForm({ productId, productInstanceId, onSubmitSucc
         }
     };
 
-    function hello(fhg: any){
-        console.log(fhg)
-    }
+    // function hello(fhg: any){
+    //     console.log(fhg)
+    // }
 
-    const handleAttributesChange = (newAttributes: AttributeValue[]) => {
-        const selectedAttributeIds = newAttributes.map(attr => attr.attributeId);
-        const uniqueIds = new Set(selectedAttributeIds);
-        if (uniqueIds.size !== selectedAttributeIds.length) {
-            setAttributesError('Attributes must be unique. You have selected one or more duplicate attributes.');
-        } else {
-            setAttributesError(null);
-        }
-        setSelectedAttributes(newAttributes);
-    };
+    // const handleAttributesChange = (newAttributes: AttributeValue[]) => {
+    //     const selectedAttributeIds = newAttributes.map(attr => attr.attributeId);
+    //     const uniqueIds = new Set(selectedAttributeIds);
+    //     if (uniqueIds.size !== selectedAttributeIds.length) {
+    //         setAttributesError('Attributes must be unique. You have selected one or more duplicate attributes.');
+    //     } else {
+    //         setAttributesError(null);
+    //     }
+    //     setSelectedAttributes(newAttributes);
+    // };
 
     const { data: attributesResponse, error: attributesLoadError, isLoading: isLoadingAttributes } = useAttributes();
     
@@ -154,7 +155,7 @@ export function ProductInstanceForm({ productId, productInstanceId, onSubmitSucc
                 control={control}
                 label="Sell Price"
                 rules={{ required: 'Sell Price is required' }}
-                isNumber={true}
+                isCurrency
                 error={!!errors.sellingPrice}
                 helperText={errors.sellingPrice?.message}
             />
@@ -165,6 +166,8 @@ export function ProductInstanceForm({ productId, productInstanceId, onSubmitSucc
                 onAttributesChange={setSelectedAttributes}
                 setAttributesError={setAttributesError}
                 attributesError={attributesError}
+                control={control}
+                errors={errors}
             />
 
             <ImageUploadField

@@ -94,7 +94,7 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
       >
         <Box sx={{ p: 2, pb: 1.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {user?.unique_name}
+            {user?.firstName} {user?.lastName}
           </Typography>
 
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
@@ -104,7 +104,7 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
-        <MenuList
+        {/* <MenuList
           disablePadding
           sx={{
             p: 1,
@@ -135,7 +135,7 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
               {option.label}
             </MenuItem>
           ))}
-        </MenuList>
+        </MenuList> */}
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 

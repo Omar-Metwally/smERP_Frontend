@@ -15,11 +15,13 @@ export const navData = [
     title: 'User',
     path: '/user',
     icon: icon('ic-user'),
+    roles: ['Admin', 'BranchManager'],
   },
   {
     title: 'Branch',
     path: '/branch',
     icon: icon('ic-branch'),
+    roles: ['Admin'],
   },
   {
     title: 'Brand',
@@ -64,20 +66,5 @@ export const navData = [
         path: '/transactions/adjustment',
       },
     ],
-  },
-  {
-    title: 'Blog',
-    path: '/blog',
-    icon: icon('ic-blog'),
-  },
-  {
-    title: 'Sign in',
-    path: '/sign-in',
-    icon: icon('ic-lock'),
-  },
-  {
-    title: 'Not found',
-    path: '/404',
-    icon: icon('ic-disabled'),
   },
 ];

@@ -17,7 +17,8 @@ interface FormSelectFieldProps<TFieldValues extends FieldValues> {
   error?: boolean;
   helperText?: string;
   selectProps?: Omit<SelectProps, 'name' | 'control' | 'label' | 'error'>;
-  onChange?: (value: string, event: SelectChangeEvent<unknown>) => void; // Update to use SelectChangeEvent
+  onChange?: (value: string, event: SelectChangeEvent<unknown>) => void;
+  disabled?: boolean;
 }
 
 export const FormSelectField = <TFieldValues extends FieldValues>({
@@ -30,7 +31,8 @@ export const FormSelectField = <TFieldValues extends FieldValues>({
   error,
   helperText,
   selectProps,
-  onChange
+  onChange,
+  disabled = false
 }: FormSelectFieldProps<TFieldValues>) => {
   const [selectOptions, setSelectOptions] = React.useState<SelectOption[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -67,7 +69,7 @@ export const FormSelectField = <TFieldValues extends FieldValues>({
             {...field}
             {...selectProps}
             label={label}
-            disabled={isLoading}
+            disabled={isLoading || disabled}
             value={isLoading ? '' : field.value}
             onChange={(event) => {
               field.onChange(event.target.value);

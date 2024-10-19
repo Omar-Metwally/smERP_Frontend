@@ -7,8 +7,11 @@ import { isTokenExpired, useAuthenticatedFetch, useAuthenticatedQuery, useLogin,
 interface User {
   id: string;
   email: string;
+  firstName:string;
+  lastName:string;
   unique_name: string;
-  role: string[]
+  branch: string;
+  roles: string[]
 }
 
 interface AuthContextType {
@@ -62,8 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string) => {
-    const { user } = await loginMutation.mutateAsync({ email, password });
-    console.log(user)
+    const user  = await loginMutation.mutateAsync({ email, password });
     setUser(user);
   };
 
@@ -95,10 +97,9 @@ export const useAuth = () => {
   return context;
 };
 
-// Custom hook to protect routes
 export const useRequireAuth = (redirectUrl = '/sign-in') => {
   const { isAuthenticated, isLoading } = useAuth();
-  const navigate = useNavigate(); // Assuming you're using react-router-dom
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {

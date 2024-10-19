@@ -1,13 +1,14 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import React from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuth, useRequireAuth } from 'src/contexts/AuthContext';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
-    fallback: JSX.Element
-    requiredRole?: 'admin' | 'customer' | 'chief' | 'Chief';
+    fallback: JSX.Element;
+    requiredRoles?: ('admin' | 'user' | 'branchManager')[];
 }
 
-function ProtectedRoute({ children, requiredRole, fallback }: ProtectedRouteProps) {
+function ProtectedRoute({ children, requiredRoles, fallback }: ProtectedRouteProps) {
     const { isLoading } = useRequireAuth();
     const { user } = useAuth();
 
@@ -19,7 +20,7 @@ function ProtectedRoute({ children, requiredRole, fallback }: ProtectedRouteProp
         return <Navigate to="/sign-in" replace />;
     }
 
-    if (requiredRole && user.role.includes(requiredRole[0])) {
+    if (requiredRoles && !requiredRoles.some(role => user.roles.includes(role))) {
         return <Navigate to="/" replace />;
     }
 

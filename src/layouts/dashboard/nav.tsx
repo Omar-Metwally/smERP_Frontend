@@ -21,6 +21,7 @@ import { WorkspacesPopover } from '../components/workspaces-popover';
 import type { WorkspacesPopoverProps } from '../components/workspaces-popover';
 import { Collapse } from '@mui/material';
 import { Iconify } from 'src/components/iconify';
+import { useAuth } from 'src/contexts/AuthContext';
 
 // ----------------------------------------------------------------------
 
@@ -30,6 +31,7 @@ export type NavContentProps = {
     title: string;
     icon: React.ReactNode;
     info?: React.ReactNode;
+    roles?: string[]
   }[];
   slots?: {
     topArea?: React.ReactNode;
@@ -116,6 +118,13 @@ export function NavMobile({
 
 export function NavContent({ data, slots, workspaces, sx }: NavContentProps) {
   const pathname = usePathname();
+  const { user } = useAuth();
+
+  const filteredData = data.filter(item => 
+    !item.roles || (user && item.roles.some(role => user.roles.includes(role)))
+  );
+
+  console.log(filteredData, user)
 
   return (
     <>
@@ -128,8 +137,8 @@ export function NavContent({ data, slots, workspaces, sx }: NavContentProps) {
       <Scrollbar fillContent>
         <Box component="nav" display="flex" flex="1 1 auto" flexDirection="column" sx={sx}>
           <Box component="ul" gap={0.5} display="flex" flexDirection="column">
-            {data.map((item) => (
-              <NavItem key={item.title} item={item} pathname={pathname} />
+          {filteredData.map((item) => (
+              <NavItem key={item.title} item={item} pathname={pathname} userRoles={user ? user.roles : []} />
             ))}
           </Box>
         </Box>
@@ -140,7 +149,7 @@ export function NavContent({ data, slots, workspaces, sx }: NavContentProps) {
   );
 }
 
-function NavItem({ item, pathname }: { item: any; pathname: string }) {
+function NavItem({ item, pathname, userRoles }: { item: any; pathname: string; userRoles: string[] }) {
   const [open, setOpen] = useState(false);
   const isActived = item.path === pathname;
   const hasSubItems = item.subItems && item.subItems.length > 0;
@@ -150,6 +159,16 @@ function NavItem({ item, pathname }: { item: any; pathname: string }) {
       setOpen(!open);
     }
   };
+
+  const filteredSubItems = hasSubItems 
+  ? item.subItems.filter((subItem: any) => 
+      !subItem.roles || subItem.roles.some((role: any) => userRoles.includes(role))
+    )
+  : [];
+
+  if (hasSubItems && filteredSubItems.length === 0) {
+    return null;
+  }
 
   return (
     <>
@@ -196,8 +215,8 @@ function NavItem({ item, pathname }: { item: any; pathname: string }) {
       {hasSubItems && (
         <Collapse in={open} timeout="auto" unmountOnExit>
           <Box component="ul" sx={{ pl: 2 }}>
-            {item.subItems!.map((subItem: any) => (
-              <NavItem key={subItem.title} item={subItem} pathname={pathname} />
+            {filteredSubItems.map((subItem: any) => (
+              <NavItem key={subItem.title} item={subItem} pathname={pathname} userRoles={userRoles} />
             ))}
           </Box>
         </Collapse>

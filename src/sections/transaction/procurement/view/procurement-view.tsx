@@ -9,6 +9,8 @@ import { TableColumn } from "src/services/types";
 import { useEntities } from "src/hooks/use-entities";
 import { useTable } from "src/hooks/use-table";
 import { GenericTableRow } from "src/layouts/components/table/generic-table-row";
+import { PaymentForm } from "../payment-form";
+import { ProductForm } from "../product-form";
 
 type ProcurementProps = {
     id: string;
@@ -27,7 +29,7 @@ type PaymentProps = { id: string; payedAmount: string; payedMethod: string }
 
 const transformPayment = (apiPayment: any): PaymentProps => {
     return {
-        id: apiPayment.paymentMethod,
+        id: apiPayment.paymentTransactionId,
         payedAmount: apiPayment.payedAmount,
         payedMethod: apiPayment.paymentMethod,
     };
@@ -173,22 +175,23 @@ export function ProcurementView() {
     const handleAddPayment = (procurement: ProcurementProps) => {
         setSelectedProcurement(procurement);
         setSelectedPayment(null)
-        setShowProductForm(true);
+        setShowPaymentForm(true);
     };
 
     const handleEditPayment = (procurement: ProcurementProps, payment: PaymentProps) => {
+        console.log(payment)
         setSelectedProcurement(procurement);
         setSelectedPayment(payment)
-        setShowProductForm(true);
+        setShowPaymentForm(true);
     };
 
     const handlePaymentFormClose = useCallback(() => {
-        setShowProductForm(false);
+        setShowPaymentForm(false);
         refetch();
     }, [refetch]);
 
     const handlePaymentFormCancel = () => {
-        setShowProductForm(false);
+        setShowPaymentForm(false);
     }
 
     const tableActions: TableAction<ProcurementProps>[] = [
@@ -224,8 +227,6 @@ export function ProcurementView() {
             onClick: (row, procurement) => handleEditProduct(procurement, row),
         }
     ]
-
-    console.log(procurements)
 
     return (
         <DashboardContent>
@@ -375,6 +376,8 @@ export function ProcurementView() {
             </Card>
 
             <CustomDialog open={showProcurementForm} handleCancel={handleProcurementFormCancel} title={selectedProcurement?.id ? 'Edit transaction' : 'Add new transaction'} content={<ProcurementForm procurementTransactionId={selectedProcurement?.id} onSubmitSuccess={handleProcurementFormClose} />} />
+            <CustomDialog open={showPaymentForm} handleCancel={handlePaymentFormCancel} title={selectedPayment?.id ? 'Edit payment' : 'Add new payment'} content={<PaymentForm transactionId={selectedProcurement?.id ?? ''} paymentId={selectedPayment?.id} onSubmitSuccess={handlePaymentFormClose} />} />
+            <CustomDialog open={showProductForm} handleCancel={handleProductFormCancel} title={selectedProduct?.id ? 'Edit product' : 'Add new product'} content={<ProductForm transactionId={selectedProcurement?.id ?? ''} productInstanceId={selectedProduct?.id} onSubmitSuccess={handleProductFormClose} />} />
         </DashboardContent>
     )
 }
