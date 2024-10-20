@@ -87,11 +87,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user]);
 
   const login = async (email: string, password: string) => {
-    const user = await loginMutation.mutateAsync({ email, password });
-    setUser(user);
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      await signalRService.startConnection(token);
+    setIsLoading(true);
+    try {
+      const user = await loginMutation.mutateAsync({ email, password });
+      setUser(user);
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        await signalRService.startConnection(token);
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 

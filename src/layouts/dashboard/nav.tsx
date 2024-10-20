@@ -130,11 +130,11 @@ export function NavContent({ data, slots, workspaces, sx }: NavContentProps) {
 
       {slots?.topArea}
 
-      <WorkspacesPopover data={workspaces} sx={{ my: 2 }} />
+      {/* <WorkspacesPopover data={workspaces} sx={{ my: 2 }} /> */}
 
       <Scrollbar fillContent>
         <Box component="nav" display="flex" flex="1 1 auto" flexDirection="column" sx={sx}>
-          <Box component="ul" gap={0.5} display="flex" flexDirection="column">
+          <Box component="ul" gap={0.5} display="flex" sx={{ my: 2 }} flexDirection="column">
           {filteredData.map((item) => (
               <NavItem key={item.title} item={item} pathname={pathname} userRoles={user ? user.roles : []} />
             ))}

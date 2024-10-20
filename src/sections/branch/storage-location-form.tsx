@@ -25,7 +25,7 @@ export function StorageLocationForm({ branchId, storageLocationsId, onSubmitSucc
 
     const { control, handleSubmit, reset, formState: { errors, dirtyFields } } = useForm<StorageLocationFormData>({
         defaultValues: {
-            branchId: '',
+            branchId: branchId,
             storageLocationsId: '',
             name: ''
         },
@@ -61,6 +61,7 @@ export function StorageLocationForm({ branchId, storageLocationsId, onSubmitSucc
                   ) as Partial<StorageLocationFormData>;
                 const requestBody = {
                     ...changedData,
+                    branchId: branchId,
                     storageLocationsId: storageLocationsId
                 };
                 await apiService.storageLocations.update(branchId, storageLocationsId, requestBody);

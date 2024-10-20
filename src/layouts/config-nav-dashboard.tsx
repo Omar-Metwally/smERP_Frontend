@@ -15,13 +15,19 @@ export const navData = [
     title: 'User',
     path: '/user',
     icon: icon('ic-user'),
-    roles: ['Admin', 'BranchManager'],
+    roles: ['Admin', 'Branch Manager'],
   },
   {
     title: 'Branch',
     path: '/branch',
     icon: icon('ic-branch'),
     roles: ['Admin'],
+  },
+  {
+    title: 'Storage Location',
+    path: '/storage-location',
+    icon: icon('ic-branch'),
+    roles: ['Admin', 'Branch Manager'],
   },
   {
     title: 'Brand',

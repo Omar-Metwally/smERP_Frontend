@@ -17,6 +17,7 @@ export const UserPage = lazy(() => import('src/pages/user'));
 export const AttributePage = lazy(() => import('src/pages/attribute'));
 export const BrandPage = lazy(() => import('src/pages/brand'));
 export const BranchPage = lazy(() => import('src/pages/branch'));
+export const StorageLocationPage = lazy(() => import('src/pages/storage-location'));
 export const CategoryPage = lazy(() => import('src/pages/category'));
 export const SignInPage = lazy(() => import('src/pages/sign-in'));
 export const ProductsPage = lazy(() => import('src/pages/products'));
@@ -59,6 +60,7 @@ export function Router() {
         { path: 'brand', element: <BrandPage /> },
         { path: 'attribute', element: <AttributePage /> },
         { path: 'branch', element: <BranchPage /> },
+        { path: 'storage-location', element: <StorageLocationPage /> },
         { path: 'category', element: <CategoryPage /> },
         { path: 'products', element: <ProductsPage /> },
         { path: 'supplier', element: <SuppliersPage /> },
@@ -71,7 +73,7 @@ export function Router() {
     },
     {
       element: (
-          <ProtectedRoute requiredRoles={['branchManager', 'admin']} fallback={renderFallback}>
+          <ProtectedRoute requiredRoles={['Branch Manager', 'admin']} fallback={renderFallback}>
             <DashboardLayout>
               <Suspense fallback={renderFallback}>
                 <Outlet />

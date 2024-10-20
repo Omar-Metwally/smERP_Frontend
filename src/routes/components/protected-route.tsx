@@ -5,12 +5,13 @@ import { useAuth, useRequireAuth } from 'src/contexts/AuthContext';
 interface ProtectedRouteProps {
     children: React.ReactNode;
     fallback: JSX.Element;
-    requiredRoles?: ('admin' | 'user' | 'branchManager')[];
+    requiredRoles?: ('admin' | 'user' | 'Branch Manager')[];
 }
 
 function ProtectedRoute({ children, requiredRoles, fallback }: ProtectedRouteProps) {
     const { isLoading } = useRequireAuth();
     const { user } = useAuth();
+
 
     if (isLoading) {
         return fallback;

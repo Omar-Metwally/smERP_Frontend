@@ -3,8 +3,8 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { Box, Typography } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { useRouter } from 'src/routes/hooks';
-import { useLogin } from 'src/services/api';
 import { FormField } from 'src/components/form-fields/form-field';
+import { useAuth } from 'src/contexts/AuthContext';
 
 interface SignInFormValues {
   email: string;
@@ -13,23 +13,21 @@ interface SignInFormValues {
 
 export function SignInView() {
   const router = useRouter();
+  const { login, isLoading } = useAuth();
   const { control, handleSubmit, formState: { errors } } = useForm<SignInFormValues>({
     defaultValues: {
       email: 'o@gmail.com',
       password: '123456zZ!',
     },
   });
-  const { mutate: login, isLoading } = useLogin();
 
-  const onSubmit: SubmitHandler<SignInFormValues> = (data) => {
-    login(data, {
-      onSuccess: () => {
-        router.push('/');
-      },
-      onError: (error) => {
-        console.error('Login failed', error);
-      },
-    });
+  const onSubmit: SubmitHandler<SignInFormValues> = async (data) => {
+    try {
+      await login(data.email, data.password);
+      router.push('/');
+    } catch (error) {
+      console.error('Login failed', error);
+    }
   };
 
   return (
@@ -44,7 +42,7 @@ export function SignInView() {
         name="email"
         control={control}
         label="Email address"
-        rules={{ 
+        rules={{
           required: 'Email is required',
           pattern: {
             value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
@@ -54,14 +52,13 @@ export function SignInView() {
         error={!!errors.email}
         helperText={errors.email?.message}
       />
-
       <FormField<SignInFormValues>
         name="password"
         control={control}
         label="Password"
         type="password"
         showPasswordToggle
-        rules={{ 
+        rules={{
           required: 'Password is required',
           minLength: {
             value: 6,
@@ -71,7 +68,6 @@ export function SignInView() {
         error={!!errors.password}
         helperText={errors.password?.message}
       />
-
       <LoadingButton
         fullWidth
         size="large"
@@ -83,7 +79,6 @@ export function SignInView() {
       >
         Sign in
       </LoadingButton>
-
       {(errors.email || errors.password) && (
         <Typography color="error" sx={{ mt: 2 }}>
           Please correct the errors above to sign in.
