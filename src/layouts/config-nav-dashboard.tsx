@@ -26,7 +26,7 @@ export const navData = [
   {
     title: 'Storage Location',
     path: '/storage-location',
-    icon: icon('ic-branch'),
+    icon: icon('ic-storage-location'),
     roles: ['Admin', 'Branch Manager'],
   },
   {
