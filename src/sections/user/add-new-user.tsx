@@ -10,6 +10,7 @@ import { FormPhoneNumberField } from 'src/components/form-fields/tel-form-field'
 import { useBranches } from 'src/hooks/use-branches';
 import { useRoles } from 'src/hooks/use-roles';
 import { apiService } from 'src/services/api';
+import { useAuth } from 'src/contexts/AuthContext';
 
 export interface UserFormData {
   userId?: string;
@@ -42,6 +43,12 @@ export function AddEditUserForm({ userId, onSubmitSuccess }: AddEditUserFormProp
   const [fetchingUser, setFetchingUser] = useState(false);
   const isEditMode = !!userId;
 
+  const { user } = useAuth();
+
+  const isAdmin = Array.isArray(user?.roles)
+  ? user.roles.some(role => role === 'Admin')
+  : user?.roles === 'Admin';
+
   const { control, handleSubmit, watch, reset, formState: { errors, dirtyFields } } = useForm<UserFormData>({
     defaultValues: {
       userId: '',
@@ -51,7 +58,7 @@ export function AddEditUserForm({ userId, onSubmitSuccess }: AddEditUserFormProp
       password: '',
       confirmPassword: '',
       phoneNumber: '',
-      branchId: '',
+      branchId: user?.branch,
       roles: [],
       address: {
         street: '',
@@ -71,7 +78,7 @@ export function AddEditUserForm({ userId, onSubmitSuccess }: AddEditUserFormProp
       if (userId) {
         setFetchingUser(true);
         try {
-          const response = await fetch(`http://localhost:5184/auth/users/${userId}`);
+          const response = await fetch(`https://smerp.runasp.net/auth/users/${userId}`);
           if (!response.ok) {
             throw new Error('Failed to fetch user data');
           }
@@ -224,6 +231,7 @@ export function AddEditUserForm({ userId, onSubmitSuccess }: AddEditUserFormProp
       <FormSelectField<UserFormData>
         name="branchId"
         control={control}
+        disabled={!isAdmin}
         rules={{ required: 'User Branch is required' }}
         error={!!errors.branchId}
         helperText={errors.branchId?.message}

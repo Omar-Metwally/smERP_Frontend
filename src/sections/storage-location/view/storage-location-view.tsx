@@ -71,7 +71,6 @@ export function StorageLocationView() {
 
     const { user } = useAuth();
 
-
     const isAdmin = Array.isArray(user?.roles)
     ? user.roles.some(role => role === 'Admin')
     : user?.roles === 'Admin';
