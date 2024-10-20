@@ -4,6 +4,7 @@ export interface PaginationParameters {
     SortBy?: string;
     SortDescending: boolean;
     SearchTerm?: string;
+    FilterBy?: {filterBy: string, value:string}[]
   }
   
   // export interface ApiResponse<T> {
@@ -104,4 +105,6 @@ export interface PaginationParameters {
     userPolicy: string;
     level: string;
     type: string;
+    createdAt: Date;
+    readAt?: Date;
 }

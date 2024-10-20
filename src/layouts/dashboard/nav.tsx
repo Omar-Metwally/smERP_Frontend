@@ -124,8 +124,6 @@ export function NavContent({ data, slots, workspaces, sx }: NavContentProps) {
     !item.roles || (user && item.roles.some(role => user.roles.includes(role)))
   );
 
-  console.log(filteredData, user)
-
   return (
     <>
       <Logo />

@@ -8,8 +8,8 @@ interface SelectOption {
 }
 
 interface FormSelectFieldProps<TFieldValues extends FieldValues> {
-  name: Path<TFieldValues>;
-  control: Control<TFieldValues>;
+  name?: Path<TFieldValues>;
+  control?: Control<TFieldValues>;
   label?: string;
   options: SelectOption[] | (() => Promise<SelectOption[]>);
   defaultValue?: PathValue<TFieldValues, Path<TFieldValues>>;
@@ -36,6 +36,7 @@ export const FormSelectField = <TFieldValues extends FieldValues>({
 }: FormSelectFieldProps<TFieldValues>) => {
   const [selectOptions, setSelectOptions] = React.useState<SelectOption[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [value, setValue] = React.useState<string>('');
 
   React.useEffect(() => {
     const loadOptions = async () => {
@@ -56,6 +57,41 @@ export const FormSelectField = <TFieldValues extends FieldValues>({
     loadOptions();
   }, [options]);
 
+  const handleChange = (event: SelectChangeEvent<unknown>) => {
+    const selectedValue = event.target.value as string;
+    setValue(selectedValue);
+    if (onChange) {
+      onChange(selectedValue, event);
+    }
+  };
+
+  const selectComponent = (
+    <Select
+      {...selectProps}
+      label={label}
+      disabled={isLoading || disabled}
+      value={isLoading ? '' : value}
+      onChange={handleChange}
+      sx={{ flex: 1, width: "auto", minWidth: "200px" }}
+      >
+      {selectOptions.map((option) => (
+        <MenuItem key={option.value} value={option.value}>
+          {option.label}
+        </MenuItem>
+      ))}
+    </Select>
+  );
+
+  if (!name || !control) {
+    return (
+      <FormControl fullWidth error={error}>
+        {label && <InputLabel>{label}</InputLabel>}
+        {selectComponent}
+        {helperText && <FormHelperText>{helperText}</FormHelperText>}
+      </FormControl>
+    );
+  }
+
   return (
     <Controller<TFieldValues>
       name={name}
@@ -64,7 +100,7 @@ export const FormSelectField = <TFieldValues extends FieldValues>({
       defaultValue={defaultValue}
       render={({ field }) => (
         <FormControl fullWidth error={error} margin="normal">
-          <InputLabel>{label}</InputLabel>
+          {label && <InputLabel>{label}</InputLabel>}
           <Select
             {...field}
             {...selectProps}
@@ -74,7 +110,8 @@ export const FormSelectField = <TFieldValues extends FieldValues>({
             onChange={(event) => {
               field.onChange(event.target.value);
               if (onChange) onChange(event.target.value as string, event);
-            }}       >
+            }}
+          >
             {selectOptions.map((option) => (
               <MenuItem key={option.value} value={option.value}>
                 {option.label}

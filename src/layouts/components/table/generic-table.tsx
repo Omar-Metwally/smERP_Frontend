@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -40,6 +40,7 @@ interface GenericTableProps<T, C = any> {
   actions?: TableAction<T, C>[];
   actionContext?: C;  
   expandableContent?: (row: any) => React.ReactNode;
+  customFilters?: ReactNode;
 }
 
 export interface TableAction<T, C = any> {
@@ -67,7 +68,8 @@ export function GenericTable<T, C = any>({
   onSelectRow,
   getRowId,
   actions,
-  expandableContent
+  expandableContent,
+  customFilters
 }: GenericTableProps<T, C>) {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
@@ -92,6 +94,7 @@ export function GenericTable<T, C = any>({
         numSelected={selected.length}
         filterName={filterName}
         onFilterName={onFilterName}
+        customFilters={customFilters}
       />
       <Scrollbar>
       <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>

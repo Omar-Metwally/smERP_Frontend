@@ -16,7 +16,7 @@ import { PaymentFormData } from 'src/sections/transaction/procurement/payment-fo
 import { TransactionProductFormData } from 'src/sections/transaction/procurement/product-form';
 
 // Define the base URL for your API
-const API_BASE_URL = 'http://localhost:5184';
+const API_BASE_URL = 'https://smerp.runasp.net';
 
 // Types for our auth responses
 interface LoginResponse {
@@ -203,7 +203,7 @@ export const useAuthenticatedQuery = <TData>(
   });
 };
 
-const API_BASE_URL1 = 'http://localhost:5184/';
+export const API_BASE_URL1 = 'https://smerp.runasp.net/';
 
 async function handleResponse(response: Response) {
   if (!response.ok) {
@@ -535,7 +535,7 @@ export const apiService = {
 //   return response.json();
 // };
 
-export const fetchEntities = async <T>(
+export const fetchEntities1 = async <T>(
   authenticatedFetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
   endpoint: string,
   params: PaginationParameters,
@@ -559,6 +559,44 @@ export const fetchEntities = async <T>(
 
   return response.json();
 };
+
+export const fetchEntities = async <T>(
+  authenticatedFetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>,
+  endpoint: string,
+  params: PaginationParameters,
+): Promise<ApiPaginatedResponse<T>> => {
+  const queryParameters: Record<string, string> = {};
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value != null && value !== '') {
+      if (key !== 'FilterBy') {
+        queryParameters[key] = String(value);
+      }
+    }
+  });
+
+  if (params.FilterBy) {
+    params.FilterBy.forEach(filter => {
+      if (filter.filterBy && filter.value) {
+        queryParameters[filter.filterBy] = filter.value;
+      }
+    });
+  }
+
+
+  const queryString = new URLSearchParams(queryParameters).toString();
+
+  const url = `${API_BASE_URL1}${endpoint}?${queryString}`;
+  
+  const response = await authenticatedFetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Error fetching entities: ${response.statusText}`);
+  }
+
+  return await response.json();
+};
+
 
 export const fetchBranches = async (): Promise<ApiResponse<SelectOption[]>> => {
   const response = await fetch(`${API_BASE_URL1}branches/list`);

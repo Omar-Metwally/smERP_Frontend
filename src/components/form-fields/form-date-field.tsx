@@ -1,10 +1,11 @@
+import React from 'react';
 import { TextFieldProps } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { DatePicker, DatePickerProps } from '@mui/x-date-pickers/DatePicker';
 import { Controller, Control, FieldValues, Path, RegisterOptions, FieldPath } from 'react-hook-form';
 
 interface DateFieldProps<TFieldValues extends FieldValues> {
-  name: Path<TFieldValues>;
-  control: Control<TFieldValues>;
+  name?: Path<TFieldValues>;
+  control?: Control<TFieldValues>;
   label: string;
   rules?: Omit<RegisterOptions<TFieldValues, FieldPath<TFieldValues>>, 'valueAsNumber' | 'valueAsDate' | 'setValueAs' | 'disabled'>;
   error?: boolean;
@@ -13,7 +14,8 @@ interface DateFieldProps<TFieldValues extends FieldValues> {
   isReadOnly?: boolean;
   defaultValue?: Date;
   maxDate?: Date;
- }
+  onChange?: (date: Date | null) => void;
+}
 
 export const FormDateField = <TFieldValues extends FieldValues>({
   name,
@@ -25,8 +27,42 @@ export const FormDateField = <TFieldValues extends FieldValues>({
   textFieldProps,
   isReadOnly = false,
   defaultValue,
-  maxDate
+  maxDate,
+  onChange
 }: DateFieldProps<TFieldValues>) => {
+  const [value, setValue] = React.useState<Date | null>(defaultValue || null);
+
+  const handleChange = (date: Date | null) => {
+    setValue(date);
+    if (onChange) {
+      onChange(date);
+    }
+  };
+
+  const datePickerProps: Partial<DatePickerProps<Date>> = {
+    label,
+    disabled: isReadOnly,
+    maxDate,
+    slotProps: {
+      textField: {
+        ...textFieldProps,
+        fullWidth: true,
+        error,
+        helperText,
+      } as TextFieldProps,
+    },
+  };
+
+  if (!name || !control) {
+    return (
+      <DatePicker
+        {...datePickerProps}
+        value={value}
+        onChange={handleChange}
+      />
+    );
+  }
+
   return (
     <Controller<TFieldValues>
       name={name}
@@ -34,19 +70,13 @@ export const FormDateField = <TFieldValues extends FieldValues>({
       rules={rules}
       render={({ field }) => (
         <DatePicker
-          label={label}
-          onChange={(date) => field.onChange(date)}
-          defaultValue={defaultValue}
-          disabled={isReadOnly}
-          maxDate={maxDate}
-          slotProps={{
-            textField: {
-              ...textFieldProps,
-              fullWidth: true,
-              margin: "normal",
-              error: error,
-              helperText: helperText,
-            },
+          {...datePickerProps}
+          value={field.value}
+          onChange={(date) => {
+            field.onChange(date);
+            if (onChange) {
+              onChange(date);
+            }
           }}
         />
       )}

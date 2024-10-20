@@ -38,7 +38,7 @@ export function CategoryForm({ categoryId, onSubmitSuccess }: CategoryFormProps)
             if (categoryId) {
                 setFetchingCategory(true);
                 try {
-                    const response = await fetch(`http://localhost:5184/categories/${categoryId}`);
+                    const response = await fetch(`https://smerp.runasp.net/categories/${categoryId}`);
                     if (!response.ok) {
                         throw new Error('Failed to fetch category data');
                     }

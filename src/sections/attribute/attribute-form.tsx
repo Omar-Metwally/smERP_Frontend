@@ -51,7 +51,7 @@ export function AttributeForm({ attributeId, onSubmitSuccess }: AttributeFormPro
             if (attributeId) {
                 setFetchingAttribute(true);
                 try {
-                    const response = await fetch(`http://localhost:5184/attributes/${attributeId}`);
+                    const response = await fetch(`https://smerp.runasp.net/attributes/${attributeId}`);
                     if (!response.ok) {
                         throw new Error('Failed to fetch attribute data');
                     }

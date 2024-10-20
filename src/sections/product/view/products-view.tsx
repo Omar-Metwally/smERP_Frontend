@@ -1,4 +1,4 @@
-import { Box, Typography, Button, Card, TableContainer, CircularProgress, TableRow, TableCell, Table, TableBody, TableHead } from "@mui/material";
+import { Box, Typography, Button, Card, TableContainer, CircularProgress, TableRow, TableCell, Table, TableBody, TableHead, SelectChangeEvent } from "@mui/material";
 import { useState, useCallback } from "react";
 import { Iconify } from "src/components/iconify";
 import { Label } from "src/components/label";
@@ -13,6 +13,10 @@ import { TableColumn } from "src/services/types";
 import { ProductForm } from "../product-form";
 import { GenericTableRow } from "src/layouts/components/table/generic-table-row";
 import { ProductInstanceForm } from "../product-instance-form";
+import { useBrands } from "src/hooks/use-brands";
+import { useParentCategories, useProductCategories } from "src/hooks/use-categories";
+import SelectInput from "@mui/material/Select/SelectInput";
+import { FormSelectField } from "src/components/form-fields/form-select-field";
 
 type ProductProps = {
   id: string,
@@ -75,6 +79,10 @@ const PRODUCT_TABLE_COLUMNS: TableColumn<ProductProps>[] = [
 
 export function ProductsView() {
   const [filterName, setFilterName] = useState('');
+  const [filterCategory, setFilterCategory] = useState('')
+  const [filterBrand, setFilterBrand] = useState('')
+  const [filterDateStart, setFilterDateStart] = useState<Date | null>(null)
+  const [filterDateEnd, setFilterDateEnd] = useState<Date | null>(null)
   const [showProductForm, setShowProductForm] = useState(false);
   const [showProductInstanceForm, setShowProductInstanceForm] = useState(false);
   const [showAttributeForm, setShowAttributeForm] = useState(false);
@@ -91,6 +99,7 @@ export function ProductsView() {
       SortBy: table.orderBy,
       SortDescending: table.order === 'desc',
       SearchTerm: filterName,
+      FilterBy: [{ filterBy: "brandId", value: filterBrand }, { filterBy: "categoryId", value: filterCategory }, { filterBy: "startDate", value: filterDateStart?.toDateString() ?? '' }, { filterBy: "endDate", value: filterDateEnd?.toDateString() ?? '' }]
     },
     transformProduct
   );
@@ -99,6 +108,34 @@ export function ProductsView() {
     const newFilterName = event.target.value;
     setFilterName(newFilterName);
     updateParams({ SearchTerm: newFilterName, PageNumber: 1 });
+    table.onChangePage(null, 0);
+  };
+
+  const handleBrandChange = (value: string, event: SelectChangeEvent<unknown>) => {
+    setFilterBrand(value);
+    updateParams({
+      FilterBy: [
+        { filterBy: "brandId", value: value },
+        { filterBy: "categoryId", value: filterCategory },
+        { filterBy: "startDate", value: filterDateStart?.toDateString() ?? '' },
+        { filterBy: "endDate", value: filterDateEnd?.toDateString() ?? '' }
+      ],
+      PageNumber: 1
+    });
+    table.onChangePage(null, 0);
+  };
+
+  const handleCategoryChange = (value: string, event: SelectChangeEvent<unknown>) => {
+    setFilterCategory(value);
+    updateParams({
+      FilterBy: [
+        { filterBy: "categoryId", value: value },
+        { filterBy: "brandId", value: filterBrand },
+        { filterBy: "startDate", value: filterDateStart?.toDateString() ?? '' },
+        { filterBy: "endDate", value: filterDateEnd?.toDateString() ?? '' }
+      ],
+      PageNumber: 1
+    });
     table.onChangePage(null, 0);
   };
 
@@ -130,11 +167,6 @@ export function ProductsView() {
     //setSelectedProduct(null);
     setShowAttributeForm(true);
   };
-
-  // const handleEditAttribute = (product: ProductProps) => {
-  //   setSelectedProduct(product);
-  //   setShowProductForm(true);
-  // };
 
   const handleAddProduct = () => {
     setSelectedProduct(null);
@@ -183,6 +215,10 @@ export function ProductsView() {
   const handleProductInstanceFormCancel = () => {
     setShowProductInstanceForm(false);
   }
+
+  const { data: brands } = useBrands();
+  let { data: categories } = useParentCategories();
+  { data: categories } useProductCategories();
 
   const tableActions: TableAction<ProductProps>[] = [
     {
@@ -239,6 +275,29 @@ export function ProductsView() {
             onSelectRow={handleSelectRow}
             getRowId={(row: ProductProps) => row.id}
             actions={tableActions}
+            customFilters={
+              <>
+                <FormSelectField
+                  label="Brand"
+                  options={[
+                    { value: '', label: 'All Brands' },
+                    ...(brands?.value ?? [])
+                  ]}
+                  onChange={handleBrandChange}
+                  defaultValue=""
+                />
+
+                <FormSelectField
+                  label="Category"
+                  options={[
+                    { value: '', label: 'All Categories' },
+                    ...(categories?.value ?? [])
+                  ]}
+                  onChange={handleCategoryChange}
+                  defaultValue=""
+                />
+              </>
+            }
             expandableContent={(product: ProductProps) => (
               <>
                 <Typography variant="h6" gutterBottom component="div">

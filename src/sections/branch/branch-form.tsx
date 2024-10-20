@@ -35,7 +35,7 @@ export function BranchForm({ branchId, onSubmitSuccess }: BranchFormProps) {
             if (branchId) {
                 setFetchingBranch(true);
                 try {
-                    const response = await fetch(`http://localhost:5184/branches/${branchId}`);
+                    const response = await fetch(`https://smerp.runasp.net/branches/${branchId}`);
                     if (!response.ok) {
                         throw new Error('Failed to fetch brand data');
                     }

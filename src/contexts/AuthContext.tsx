@@ -2,7 +2,9 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UseQueryOptions } from '@tanstack/react-query';
 import { jwtDecode } from 'jwt-decode';
+import { Notification } from '../services/types';
 import { isTokenExpired, useAuthenticatedFetch, useAuthenticatedQuery, useLogin, useLogout, useRefreshToken } from '../services/api';
+import { signalRService } from 'src/services/signalR';
 
 interface User {
   id: string;
@@ -26,6 +28,7 @@ interface AuthContextType {
     queryFn: () => Promise<TData>,
     options?: Omit<UseQueryOptions<TData, Error>, 'queryKey' | 'queryFn'>
   ) => ReturnType<typeof useAuthenticatedQuery<TData>>;
+  notifications: Notification[];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,6 +36,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const loginMutation = useLogin();
   const logoutMutation = useLogout();
   const refreshTokenMutation = useRefreshToken();
@@ -41,16 +45,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // Retrieve token from local storage
         const token = localStorage.getItem('accessToken');
-        
-        // Check if the token is present and valid
         if (token && !isTokenExpired(token)) {
-          // Decode the user from the token and set it
           const userFromToken: User = jwtDecode<User>(token);
           setUser(userFromToken);
+          await signalRService.startConnection(token);
         } else if (token) {
-          // If the token is expired, attempt to refresh
           await refreshTokenMutation.mutateAsync();
         }
       } catch (error) {
@@ -60,18 +60,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(false);
       }
     };
-
     initAuth();
+
+    return () => {
+      signalRService.stopConnection();
+    };
   }, []);
 
+  useEffect(() => {
+    const handleNotification = (newNotifications: Notification | Notification[]) => {
+      setNotifications(prev => [
+        ...(Array.isArray(newNotifications) ? newNotifications : [newNotifications]),
+        ...prev
+      ]);
+    };
+
+    if (user) {
+      signalRService.onNotification(handleNotification);
+    }
+
+    return () => {
+      if (user) {
+        signalRService.offNotification(handleNotification);
+      }
+    };
+  }, [user]);
+
   const login = async (email: string, password: string) => {
-    const user  = await loginMutation.mutateAsync({ email, password });
+    const user = await loginMutation.mutateAsync({ email, password });
     setUser(user);
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      await signalRService.startConnection(token);
+    }
   };
 
   const logout = async () => {
     await logoutMutation.mutateAsync();
+    await signalRService.stopConnection();
     setUser(null);
+    setNotifications([]);
   };
 
   const authenticatedQuery = useAuthenticatedQuery;
@@ -84,6 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     authenticatedFetch,
     authenticatedQuery,
+    notifications,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

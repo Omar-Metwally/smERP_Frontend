@@ -12,7 +12,7 @@ export interface ProductFormData {
     productId?: string;
     englishName: string;
     arabicName: string;
-    modelName: string;
+    modelNumber: string;
     brandId: string;
     categoryId: string;
     description: string;
@@ -36,7 +36,7 @@ export function ProductForm({ productId, onSubmitSuccess }: ProductFormProps) {
             productId: '',
             englishName: '',
             arabicName: '',
-            modelName: '',
+            modelNumber: '',
             brandId: '',
             categoryId: '',
             description: '',
@@ -50,7 +50,7 @@ export function ProductForm({ productId, onSubmitSuccess }: ProductFormProps) {
             if (productId) {
                 setFetchingProduct(true);
                 try {
-                    const response = await fetch(`http://localhost:5184/products/${productId}`);
+                    const response = await fetch(`https://smerp.runasp.net/products/${productId}`);
                     if (!response.ok) {
                         throw new Error('Failed to fetch product data');
                     }
@@ -141,12 +141,12 @@ export function ProductForm({ productId, onSubmitSuccess }: ProductFormProps) {
                 </Grid>
                 <Grid item xs={12} sm={6}>
                     <FormField<ProductFormData>
-                        name="modelName"
+                        name="modelNumber"
                         control={control}
                         label="Model Number"
                         rules={{ required: 'Model number is required' }}
-                        error={!!errors.modelName}
-                        helperText={errors.modelName?.message}
+                        error={!!errors.modelNumber}
+                        helperText={errors.modelNumber?.message}
                     />
                 </Grid>
                 <Grid item xs={12} sm={6}>

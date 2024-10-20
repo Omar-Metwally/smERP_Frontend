@@ -1,4 +1,5 @@
 import * as signalR from '@microsoft/signalr';
+import { API_BASE_URL1 } from './api';
 
 class SignalRService {
   private connection: signalR.HubConnection | null = null;
@@ -9,9 +10,15 @@ class SignalRService {
     }
 
     this.connection = new signalR.HubConnectionBuilder()
-      .withUrl('/notificationHub', { accessTokenFactory: () => accessToken })
-      .withAutomaticReconnect()
-      .build();
+    .withUrl(`${API_BASE_URL1}notifications`, {
+      accessTokenFactory: () => accessToken,
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'access_token': `Bearer ${accessToken}`
+      }
+    })
+    .withAutomaticReconnect()
+    .build();
 
     try {
       await this.connection.start();
@@ -30,13 +37,13 @@ class SignalRService {
 
   public onNotification(callback: (notifications: any) => void): void {
     if (this.connection) {
-      this.connection.on('Notification', callback);
+      this.connection.on('notification', callback);
     }
   }
 
   public offNotification(callback: (notifications: any) => void): void {
     if (this.connection) {
-      this.connection.off('Notification', callback);
+      this.connection.off('notification', callback);
     }
   }
 }

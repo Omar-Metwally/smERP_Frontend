@@ -35,7 +35,7 @@ export function BrandForm({ brandId, onSubmitSuccess }: BrandFormProps) {
             if (brandId) {
                 setFetchingBrand(true);
                 try {
-                    const response = await fetch(`http://localhost:5184/brands/${brandId}`);
+                    const response = await fetch(`https://smerp.runasp.net/brands/${brandId}`);
                     if (!response.ok) {
                         throw new Error('Failed to fetch brand data');
                     }

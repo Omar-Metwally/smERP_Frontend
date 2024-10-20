@@ -11,6 +11,7 @@ import { useTable } from "src/hooks/use-table";
 import { GenericTableRow } from "src/layouts/components/table/generic-table-row";
 import { PaymentForm } from "../payment-form";
 import { ProductForm } from "../product-form";
+import { FormDateField } from "src/components/form-fields/form-date-field";
 
 type ProcurementProps = {
     id: string;
@@ -76,6 +77,8 @@ export function ProcurementView() {
     const [selectedProcurement, setSelectedProcurement] = useState<ProcurementProps | null>(null);
     const [selectedProduct, setSelectedProduct] = useState<ProductProps | null>(null);
     const [selectedPayment, setSelectedPayment] = useState<PaymentProps | null>(null);
+    const [filterDateStart, setFilterDateStart] = useState<Date | null>(null)
+    const [filterDateEnd, setFilterDateEnd] = useState<Date | null>(null)
 
     const table = useTable();
 
@@ -87,6 +90,7 @@ export function ProcurementView() {
             SortBy: table.orderBy,
             SortDescending: table.order === 'desc',
             SearchTerm: filterName,
+            FilterBy: [{ filterBy: "startDate", value: filterDateStart?.toDateString() ?? '' }, { filterBy: "endDate", value: filterDateEnd?.toDateString() ?? '' }]
         },
         transformProcurement
     );
@@ -97,6 +101,31 @@ export function ProcurementView() {
         updateParams({ SearchTerm: newFilterName, PageNumber: 1 });
         table.onChangePage(null, 0);
     };
+
+    const handleStartDateChange = (date: Date | null) => {
+        setFilterDateStart(date);
+        updateParams({
+          FilterBy: [
+            { filterBy: "startDate", value: date?.toDateString() ?? '' },
+            { filterBy: "endDate", value: filterDateEnd?.toDateString() ?? '' }
+          ],
+          PageNumber: 1
+        });
+        table.onChangePage(null, 0);
+      };
+    
+      const handleEndDateChange = (date: Date | null) => {
+        setFilterDateEnd(date);
+        updateParams({
+          FilterBy: [
+            { filterBy: "endDate", value: date?.toDateString() ?? '' },
+            { filterBy: "startDate", value: filterDateStart?.toDateString() ?? '' },
+            { filterBy: "endDate", value: filterDateEnd?.toDateString() ?? '' }
+          ],
+          PageNumber: 1
+        });
+        table.onChangePage(null, 0);
+      };
 
     const handleChangePage = (event: unknown, newPage: number) => {
         updateParams({ PageNumber: newPage + 1 });
@@ -259,6 +288,19 @@ export function ProcurementView() {
                         onSelectRow={handleSelectRow}
                         getRowId={(row: ProcurementProps) => row.id}
                         actions={tableActions}
+                        customFilters={
+                            <>
+                                <FormDateField
+                                    label="Start Date"
+                                    onChange={(date) => handleStartDateChange(date)}
+                                />
+
+                                <FormDateField
+                                    label="End Date"
+                                    onChange={(date) => handleEndDateChange(date)}
+                                />
+                            </>
+                        }
                         expandableContent={(procurement: ProcurementProps) => (
                             <>
 
@@ -294,7 +336,7 @@ export function ProcurementView() {
                                         </Table>
                                     </div>
                                 )}
-                    
+
                                 {procurement.products.length > 0 && (
                                     <div>
                                         <Typography variant="h6" gutterBottom component="div">
@@ -319,7 +361,7 @@ export function ProcurementView() {
                                                             { id: 'name', label: 'Product Name', render: () => product.name },
                                                             { id: 'quantity', label: 'Quantity', render: () => product.quantity },
                                                             { id: 'unitPrice', label: 'Unit Price', render: () => product.unitPrice },
-                                                            { id: 'units', label: 'Units', render: () => product.units ? product.units.map(unit => unit.serialNumber).join(', ') : 'N/A'  }
+                                                            { id: 'units', label: 'Units', render: () => product.units ? product.units.map(unit => unit.serialNumber).join(', ') : 'N/A' }
                                                         ]}
                                                         selected={false}
                                                         getRowId={(row) => row.id}
